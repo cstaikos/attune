@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.angular/
+.pnpm-store/
+.env
+.env.*
+!.env.example

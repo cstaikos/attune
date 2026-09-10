@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../app.js'), 'utf8').split('if (!location.hash) location.hash')[0];
 function app() {
-  const context = vm.createContext({ structuredClone, localStorage: { getItem: () => null, setItem() {} }, document: { querySelector: () => ({ value: '' }) } });
+  const context = vm.createContext({ structuredClone, location: { hash: '#library' }, localStorage: { getItem: () => null, setItem() {} }, document: { querySelector: () => ({ value: '' }) } });
   vm.runInContext(source + '\nrender = () => {}; showToast = () => {};', context);
   return expression => vm.runInContext(expression, context);
 }

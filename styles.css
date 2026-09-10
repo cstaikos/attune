@@ -1315,3 +1315,8 @@ body { line-height: 1.5; }
 .personal-empty { max-width: 720px; margin: 48px auto; padding: 32px; line-height: 1.7; }
 .personal-empty h2 { font: 400 2rem Georgia, serif; }
 @media (max-width: 720px) { .library-nav { padding: 12px 20px; gap: 4px; } .library-nav a { padding: 10px 12px; } }
+
+.duration-filter-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.duration-filter-range label { display: grid; gap: 8px; font-size: .875rem; }
+.duration-filter-range input { min-width: 0; width: 100%; }
+.voice-exclusions { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }

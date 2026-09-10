@@ -1,0 +1,17 @@
+<div class="app-shell">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="topbar">
+    <a class="brand-block" routerLink="/library" aria-label="Resonance library home">
+      <div class="brand-mark" aria-hidden="true">∿</div>
+      <div><h1>Resonance</h1><p>Session music library</p></div>
+    </a>
+    <div class="account-bar"><a class="ghost-button" routerLink="/login">Sign in</a></div>
+  </header>
+  <nav class="library-nav" aria-label="Library sections">
+    <a routerLink="/library" routerLinkActive="active" ariaCurrentWhenActive="page">Library</a>
+    <a routerLink="/saved" routerLinkActive="active" ariaCurrentWhenActive="page">Saved</a>
+    <a routerLink="/contributions" routerLinkActive="active" ariaCurrentWhenActive="page">My contributions</a>
+  </nav>
+  <main class="view-root" id="main-content" tabindex="-1"><router-outlet /></main>
+  <footer class="site-footer"><a routerLink="/listening-guide">About tags &amp; listening notes</a></footer>
+</div>

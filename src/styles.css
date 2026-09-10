@@ -1,0 +1,9 @@
+/* Existing design tokens and component classes come from ../styles.css.
+   Keep Angular shell adjustments here during the incremental port. */
+app-root { display: block; min-height: 100vh; }
+app-root .app-shell { grid-template-rows: auto auto 1fr auto; }
+app-root .topbar { grid-template-columns: 1fr auto; }
+app-root .library-nav { width: 100%; }
+app-route-placeholder { display: block; width: 100%; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 12px; background: var(--surface); transform: translateY(-150%); }
+.skip-link:focus { transform: translateY(0); }

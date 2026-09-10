@@ -106,3 +106,53 @@ test('edit handler rejects another creator even if a stale form is submitted', (
   assert.equal(run(`getPlaylist('p-mesa-arc').title`), 'Mesa Arc');
   assert.match(run('elements.playlistError.textContent'), /own contributions/);
 });
+
+
+test('duration filters include exact boundaries and support open ends', () => {
+  const run = app();
+  run(`filters.minDuration='58'; filters.maxDuration='68'`);
+  assert.equal(run(`filteredPlaylists().map(p=>p.duration).sort().join(',')`), '1h 08m,58m');
+  run(`filters.minDuration='134'; filters.maxDuration='134'`);
+  assert.equal(run(`filteredPlaylists()[0].id`), 'p-warm-horizon');
+  run(`filters.minDuration=''; filters.maxDuration='42'`);
+  assert.equal(run('filteredPlaylists().length'), 1);
+  run(`filters.minDuration='282'; filters.maxDuration=''`);
+  assert.equal(run('filteredPlaylists().length'), 1);
+  assert.equal(run(`durationMinutes('2h')`), 120);
+  assert.equal(run(`durationMinutes('unknown')`), null);
+  assert.notEqual(run(`durationRangeError('90','60')`), '');
+  assert.notEqual(run(`durationRangeError('-1','')`), '');
+  assert.equal(run(`durationRangeError('','')`), '');
+});
+
+test('service filters match any chosen provider but never homepage placeholders', () => {
+  const run = app();
+  run(`filters.services=['spotify']`);
+  assert.equal(run('filteredPlaylists().length'), 0);
+  run(`state.playlists[0].links={spotify:'https://open.spotify.com/playlist/abc'}; state.playlists[1].links={youtube:'https://www.youtube.com/playlist?list=PLabc'}; filters.services=['spotify','youtube']`);
+  assert.equal(run('filteredPlaylists().length'), 2);
+  run(`filters.services=['apple']`);
+  assert.equal(run('filteredPlaylists().length'), 0);
+});
+
+test('specific exclusions hide any selected content without hiding every flagged playlist', () => {
+  const run = app();
+  run(`filters.excludedWarnings=['abrupt transitions']`);
+  assert.equal(run(`filteredPlaylists().some(p=>p.id==='p-soft-dissolve')`), false);
+  assert.equal(run(`filteredPlaylists().some(p=>p.id==='p-mesa-arc')`), true);
+  run(`filters.excludedQualities=['sung lyrics']`);
+  assert.equal(run(`filteredPlaylists().some(p=>p.qualities.includes('sung lyrics'))`), false);
+  assert.equal(run(`filteredPlaylists().some(p=>p.id==='p-quiet-body')`), true);
+});
+
+test('new filters combine with personal views and clear together', () => {
+  const run = app();
+  run(`state.currentUserId='u-maya'; toggleFavorite('p-warm-horizon'); toggleFavorite('p-soft-dissolve'); location.hash='#saved'; filters.maxDuration='90'`);
+  assert.equal(run(`filteredPlaylists().map(p=>p.id).join(',')`), 'p-soft-dissolve');
+  run(`filters.excludedWarnings=['abrupt transitions']`);
+  assert.equal(run('filteredPlaylists().length'), 0);
+  run(`filters.services=['youtube']; filters.excludedQualities=['spoken word']; clearFilters()`);
+  assert.equal(run('filteredPlaylists().length'), 2);
+  assert.equal(run(`filters.services.length + filters.excludedQualities.length + filters.excludedWarnings.length`), 0);
+  assert.equal(run('filters.maxDuration'), '');
+});

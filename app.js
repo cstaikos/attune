@@ -307,6 +307,10 @@ let filters = {
   modality: "All",
   qualities: [],
   excludedWarnings: [],
+  excludedQualities: [],
+  services: [],
+  minDuration: "",
+  maxDuration: "",
   sort: "recommended"
 };
 
@@ -461,6 +465,16 @@ function bindEvents() {
   });
 
   elements.viewRoot.addEventListener("change", (event) => {
+    for (const [attribute, field] of [["data-service-filter", "services"], ["data-exclude-quality", "excludedQualities"]]) {
+      if (!event.target.hasAttribute(attribute)) continue;
+      const value = event.target.getAttribute(attribute);
+      const values = new Set(filters[field]);
+      if (event.target.checked) values.add(value); else values.delete(value);
+      filters[field] = [...values];
+      render();
+      Array.from(elements.viewRoot.querySelectorAll(`[${attribute}]`)).find(input => input.getAttribute(attribute) === value)?.focus();
+      return;
+    }
     if (event.target.matches("[data-exclude-warning]")) {
       const value = event.target.dataset.excludeWarning;
       toggleArrayValue(filters.excludedWarnings, value);
@@ -484,6 +498,22 @@ function bindEvents() {
   });
 
   elements.viewRoot.addEventListener("submit", (event) => {
+    if (event.target.matches("[data-duration-filter]")) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      const min = String(data.get("minDuration") || "").trim();
+      const max = String(data.get("maxDuration") || "").trim();
+      const error = durationRangeError(min, max);
+      if (error) {
+        event.target.querySelector('[role="alert"]').textContent = error;
+        return;
+      }
+      filters.minDuration = min;
+      filters.maxDuration = max;
+      render();
+      elements.viewRoot.querySelector('[data-duration-filter] button').focus();
+      return;
+    }
     if (event.target.matches("[data-listening-form]")) {
       event.preventDefault();
       const data = new FormData(event.target);
@@ -777,6 +807,7 @@ function renderLibrary() {
     return;
   }
   const playlists = filteredPlaylists();
+  const filterCount = filters.qualities.length + filters.excludedWarnings.length + filters.excludedQualities.length + filters.services.length + (filters.modality !== "All" ? 1 : 0) + (filters.minDuration !== "" || filters.maxDuration !== "" ? 1 : 0);
   const hasPersonalItems = section === "saved" ? savedPlaylistIds().length > 0 : creatorPlaylists(state.currentUserId).length > 0;
   const emptyMessage = personal && !hasPersonalItems ? (section === "saved" ? 'No saved playlists yet. Choose Save on any playlist to keep it here.<br><a class="text-button" href="#library">Explore the library</a>' : 'You have not added any playlists yet.<br><a class="text-button" href="#create">Add your first playlist</a>') : 'No playlists found. Try another search or clear your filters.<br><button type="button" class="text-button" data-clear-filters>Clear filters</button>';
 
@@ -799,6 +830,23 @@ function renderLibrary() {
         </section>
 
         <section class="filter-section">
+          <h2>Duration</h2>
+          <form data-duration-filter>
+            <p class="field-hint">Minutes, including both limits. Leave either end blank for no limit.</p>
+            <div class="duration-filter-range">
+              <label>At least<input name="minDuration" type="number" min="0" step="1" inputmode="numeric" placeholder="Any" value="${escapeAttribute(filters.minDuration)}"></label>
+              <label>At most<input name="maxDuration" type="number" min="0" step="1" inputmode="numeric" placeholder="Any" value="${escapeAttribute(filters.maxDuration)}"></label>
+            </div>
+            <p class="form-error" role="alert"></p>
+            <button class="ghost-button small-button" type="submit">Apply duration</button>
+          </form>
+        </section>
+        <section class="filter-section">
+          <h2>Music service</h2>
+          <p class="field-hint">Match any selected service with a direct playlist link. Entries without a playlist link are excluded.</p>
+          ${Object.entries({spotify: "Spotify", youtube: "YouTube", apple: "Apple Music", other: "Other services"}).map(([key, label]) => `<label class="toggle-row"><input type="checkbox" data-service-filter="${key}" ${filters.services.includes(key) ? "checked" : ""}><span>${label}</span></label>`).join("")}
+        </section>
+        <section class="filter-section">
           <h2>Music tags</h2>
           <p class="field-hint">Match all selected tags.</p>
           ${groupedChoices(qualityGroups, quality => filterPill(quality, filters.qualities.includes(quality)))}
@@ -806,6 +854,9 @@ function renderLibrary() {
         <section class="filter-section">
           <h2>Prefer to exclude…</h2>
           <p class="field-hint">Hide playlists with any selected note. Unreported content may still be present. <a href="#listening-guide">About listening notes</a></p>
+          <div class="voice-exclusions">
+            ${["sung lyrics", "spoken word"].map(quality => `<label class="toggle-row"><input type="checkbox" data-exclude-quality="${quality}" ${filters.excludedQualities.includes(quality) ? "checked" : ""}><span>${titleCase(quality)}</span></label>`).join("")}
+          </div>
           ${[...warningOptions, ...new Set(state.playlists.flatMap(p => warningEntries(p).map(([label]) => label)).filter(label => !warningOptions.includes(label)))].map(warning => `<label class="toggle-row"><input data-exclude-warning="${escapeAttribute(warning)}" type="checkbox" ${filters.excludedWarnings.includes(warning) ? "checked" : ""}><span>${escapeHtml(titleCase(warning))}</span></label>`).join("")}
         </section>
       </aside>
@@ -813,7 +864,7 @@ function renderLibrary() {
       <section class="playlist-column" aria-label="Playlists">
         <div class="column-toolbar">
           <div>
-            <button type="button" class="ghost-button filter-trigger" data-toggle-filters aria-expanded="${filtersOpen}" aria-controls="libraryFilters">Filters${filters.qualities.length + (filters.modality !== "All" ? 1 : 0) + filters.excludedWarnings.length ? ` · ${filters.qualities.length + (filters.modality !== "All" ? 1 : 0) + filters.excludedWarnings.length}` : ""}</button>
+            <button type="button" class="ghost-button filter-trigger" data-toggle-filters aria-expanded="${filtersOpen}" aria-controls="libraryFilters">Filters${filterCount ? ` · ${filterCount}` : ""}</button>
             <span class="result-count" role="status">${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}</span>
           </div>
           <div class="toolbar-actions">
@@ -1155,7 +1206,7 @@ function renderListeningGuide() {
     <section><h3>What these notes mean</h3><p>These are the library’s warning tags, expressed as specific, neutral observations. A note is not a rating, a prediction of someone’s reaction, or a clinical safety assessment. Religious or devotional music, for example, may be something a listener seeks or prefers to exclude.</p><p>Music tags describe the overall sound and mood. Voice tags disclose any vocal content present. Listening notes identify particular sounds or subjects that deserve advance context, even if they occur only once.</p></section>
     ${Object.entries(listeningGroups).map(([group, definitions]) => `<section><h3>${group}</h3><dl class="definition-list">${Object.entries(definitions).map(([label, definition]) => `<div><dt>${titleCase(label)}</dt><dd>${definition}</dd></div>`).join("")}</dl></section>`).join("")}
     <section><h3>How to contribute</h3><ol><li>Choose a category based on something you heard. Do not infer content from a title, artist, language, or genre.</li><li>Add a track title, timestamp, or short description when possible. For a transition, name the tracks on either side.</li><li>Keep descriptions factual and brief. Avoid graphic quotations or claims about how everyone will respond.</li></ol><p>For example: “Track 3, around 1:20 — percussion enters much louder than the preceding passage.” Lyrics on their own belong under Sung lyrics; a melancholy mood belongs under Melancholic.</p><p>Creators can mark the categories as reviewed. Community members can contribute one note per category per account. We show the categories and context, without a severity score.</p></section>
-    <section><h3>Using exclusions</h3><p>“Prefer to exclude…” hides playlists with any of your selected listening notes. It does not exclude playlists merely for containing lyrics, and it cannot detect content that has not been reported.</p><p>“No listening notes added” means no information has been submitted. “Creator reviewed” records the creator’s review of these categories; it does not guarantee that a playlist suits every listener. Playlist contents may also change on the linked music service.</p></section>
+    <section><h3>Using exclusions</h3><p>“Prefer to exclude…” hides playlists with any of your selected listening notes. Sung lyrics and Spoken word can be excluded separately using their music tags. Exclusions cannot detect content that has not been reported.</p><p>“No listening notes added” means no information has been submitted. “Creator reviewed” records the creator’s review of these categories; it does not guarantee that a playlist suits every listener. Playlist contents may also change on the linked music service.</p></section>
     <section><h3>Choosing music tags</h3><p>Select the sounds and moods that characterize the playlist overall. Select every voice type that occurs anywhere in it. No vocals cannot be combined with other voice types. Mood words are subjective descriptions, not promised effects.</p><p>Older ambiguous labels, such as Dark/intense, remain visible as legacy notes until reviewed. We do not guess which new category they mean.</p></section>
     <a class="ghost-button" href="#library">Explore the library</a>
   </article>`;
@@ -1229,6 +1280,18 @@ function getArcBuilderValues() {
   return values.length ? values : defaultCreateCurve;
 }
 
+function durationMinutes(value) {
+  const match = String(value || "").trim().match(/^(?:(\d+)h)?\s*(?:(\d+)m)?$/);
+  if (!match || (!match[1] && !match[2])) return null;
+  return Number(match[1] || 0) * 60 + Number(match[2] || 0);
+}
+
+function durationRangeError(min, max) {
+  if ([min, max].some(value => value !== "" && (!Number.isSafeInteger(Number(value)) || Number(value) < 0))) return "Enter whole minutes of zero or more.";
+  if (min !== "" && max !== "" && Number(min) > Number(max)) return "At least must be less than or equal to At most.";
+  return "";
+}
+
 function filteredPlaylists() {
   const query = normalize(filters.search);
   const rows = state.playlists.filter((playlist) => {
@@ -1255,7 +1318,14 @@ function filteredPlaylists() {
     const matchesQuality = filters.qualities.length === 0 || filters.qualities.every((quality) => playlist.qualities.includes(quality));
     const matchesWarnings = !warningEntries(playlist).some(([label]) => filters.excludedWarnings.includes(label));
 
-    return matchesSearch && matchesModality && matchesQuality && matchesWarnings;
+    const matchesExcludedQualities = !filters.excludedQualities.some(quality => playlist.qualities.includes(quality));
+    const duration = durationMinutes(playlist.duration);
+    const hasDurationFilter = filters.minDuration !== "" || filters.maxDuration !== "";
+    const matchesDuration = !hasDurationFilter || (duration !== null && (filters.minDuration === "" || duration >= Number(filters.minDuration)) && (filters.maxDuration === "" || duration <= Number(filters.maxDuration)));
+    const services = Object.values(playlist.links || {}).map(parsePlaylistLink).filter(Boolean).map(link => link.key);
+    const matchesService = !filters.services.length || filters.services.some(service => services.includes(service));
+
+    return matchesSearch && matchesModality && matchesQuality && matchesWarnings && matchesExcludedQualities && matchesDuration && matchesService;
   });
 
   return rows.sort((a, b) => {
@@ -1272,6 +1342,10 @@ function clearFilters() {
     modality: "All",
     qualities: [],
     excludedWarnings: [],
+  excludedQualities: [],
+  services: [],
+  minDuration: "",
+  maxDuration: "",
     sort: "recommended"
   };
   elements.searchInput.value = "";

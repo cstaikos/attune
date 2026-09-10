@@ -1,10 +1,60 @@
 const STORAGE_KEY = "resonance-library-state-v3";
 
 const modalities = ["MDMA", "Psilocybin", "Ketamine", "Cannabis", "Breathwork", "Meditation"];
-const qualities = ["vocal", "instrumental", "ambient", "rhythmic", "classical", "ceremonial", "electronic", "acoustic"];
-const warningOptions = ["contains lyrics", "religious content", "dark/intense", "sudden transitions", "explicit lyrics"];
+const qualityGroups = {
+  "Sound": ["ambient", "acoustic", "electronic", "classical", "percussive", "nature sounds"],
+  "Voice": ["no vocals", "wordless vocals", "sung lyrics", "spoken word"],
+  "Mood / texture": ["spacious", "gentle", "warm", "reflective", "uplifting", "melancholic", "tense", "driving"]
+};
+const listeningGroups = {
+  "Sound / delivery": {
+    "abrupt transitions": "A sudden change in style, pace, or texture, within a track or between tracks. A smooth change in energy alone does not need this note.",
+    "sudden loud sounds": "An unexpected loud entrance, impact, or jump in volume. Identify where it occurs when possible.",
+    "sustained high intensity": "An extended passage of forceful, dense, or insistent sound. Use for sustained intensity, rather than a brief peak.",
+    "harsh or dissonant sounds": "Prominent distortion, abrasive textures, or clashing tones. This describes the sound, not its musical quality.",
+    "distressing human sounds": "Audible screaming, sobbing, or other human expressions of distress. Ordinary singing does not qualify."
+  },
+  "Content": {
+    "explicit language": "Profanity or slurs in sung or spoken words. Add context if a platform’s explicit label is unclear.",
+    "religious or devotional content": "Identifiable prayer, worship, devotional lyrics, or religious teaching. Name the tradition if known; do not infer it from an instrument or language.",
+    "death or grief themes": "Sung or spoken references to death, dying, bereavement, or mourning. A melancholy mood alone does not qualify.",
+    "violence or abuse themes": "Sung or spoken descriptions of violence, threats, or abuse. Give a brief, non-graphic explanation when helpful.",
+    "sexual content": "Sung or spoken sexual references or sexual audio. Romantic themes alone do not qualify."
+  }
+};
+const warningOptions = Object.values(listeningGroups).flatMap(Object.keys);
+const warningDefinitions = Object.assign({}, ...Object.values(listeningGroups));
+
+// Keep existing browser libraries while normalizing only unambiguous old labels.
+function migratePlaylist(playlist) {
+  if (playlist.taxonomyVersion === 1) return playlist;
+  const aliases = { "religious content": "religious or devotional content", "sudden transitions": "abrupt transitions", "explicit lyrics": "explicit language" };
+  const previous = { ...warningMapFrom(playlist.cautions || []), ...(playlist.warnings || {}) };
+  const tags = new Set(playlist.qualities || []);
+  if (previous["contains lyrics"] || previous["explicit lyrics"]) tags.add("sung lyrics");
+  const legacy = [];
+  if (tags.delete("instrumental")) legacy.push("Instrumental (vocal presence not reviewed)");
+  if (tags.delete("vocal") && !tags.has("sung lyrics")) legacy.push("Vocals (type unspecified)");
+  if (tags.delete("rhythmic")) legacy.push("Rhythmic");
+  if (tags.delete("ceremonial")) legacy.push("Ceremonial");
+  playlist.warnings = {};
+  for (const [label, count] of Object.entries(previous)) {
+    if (label === "contains lyrics") continue;
+    const next = aliases[label] || label;
+    playlist.warnings[next] = Math.max(playlist.warnings[next] || 0, Number(count) || 0);
+  }
+  if ([...tags].some(tag => qualityGroups.Voice.includes(tag) && tag !== "no vocals")) tags.delete("no vocals");
+  playlist.qualities = [...tags];
+  playlist.legacyQualities = [...(playlist.legacyQualities || []), ...legacy];
+  playlist.taxonomyVersion = 1;
+  delete playlist.cautions;
+  return playlist;
+}
+
+function groupedChoices(groups, renderChoice) {
+  return Object.entries(groups).map(([heading, values]) => `<fieldset class="choice-group"><legend>${heading}</legend><div class="pill-list">${(Array.isArray(values) ? values : Object.keys(values)).map(renderChoice).join("")}</div></fieldset>`).join("");
+}
 const defaultCreateCurve = [1, 2, 3, 4, 3, 2];
-const arcLabels = ["Start", "Early", "Middle", "High", "Late", "End"];
 const validInvites = ["BETA-2026", "GUIDE-2026", "BREATH-2026"];
 
 const seedState = {
@@ -241,11 +291,22 @@ const seedState = {
 };
 
 let state = loadState();
+state.playlists = state.playlists.map(migratePlaylist);
+// Keep the existing prototype identity model, but scope saved music to that identity.
+if (!state.favoritesByUser) {
+  state.favoritesByUser = {};
+  state.favoritesByUser[state.currentUserId || "u-maya"] = [...state.favorites];
+}
+let editorKey = null;
+let editingId = null;
+let libraryView = "cards";
+try { libraryView = localStorage.getItem("resonance-library-view") === "list" ? "list" : "cards"; } catch {}
+let filtersOpen = false;
 let filters = {
   search: "",
   modality: "All",
   qualities: [],
-  hideWarnings: false,
+  excludedWarnings: [],
   sort: "recommended"
 };
 
@@ -292,13 +353,13 @@ function initializeCreateForm() {
     <option value="${modality}">${modality}</option>
   `).join("");
   renderArcBuilder(defaultCreateCurve);
-  elements.qualityChoices.innerHTML = qualities.map((quality) => choicePill("quality", quality)).join("");
-  elements.warningChoices.innerHTML = warningOptions.map((warning) => choicePill("warning", warning)).join("");
+  elements.qualityChoices.innerHTML = groupedChoices(qualityGroups, quality => choicePill("quality", quality));
+  elements.warningChoices.innerHTML = groupedChoices(listeningGroups, warning => choicePill("warning", warning));
 }
 
 function choicePill(name, value) {
   return `
-    <label class="pill-button">
+    <label class="pill-button" title="${escapeAttribute(warningDefinitions[value] || "")}">
       <input class="sr-only" type="checkbox" name="${name}" value="${value}">
       ${titleCase(value)}
     </label>
@@ -306,11 +367,11 @@ function choicePill(name, value) {
 }
 
 function bindEvents() {
-  window.addEventListener("hashchange", render);
+  window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
 
   elements.searchInput.addEventListener("input", (event) => {
     filters.search = event.target.value;
-    if (currentRoute().view !== "library") {
+    if (!["library", "saved", "contributions"].includes(currentRoute().view)) {
       location.hash = "#library";
       return;
     }
@@ -334,12 +395,27 @@ function bindEvents() {
   });
 
   elements.viewRoot.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest("[data-delete-playlist]");
+    if (deleteButton) { deletePlaylist(deleteButton.dataset.deletePlaylist); return; }
+    const viewButton = event.target.closest("[data-library-view]");
+    if (viewButton) {
+      libraryView = viewButton.dataset.libraryView;
+      try { localStorage.setItem("resonance-library-view", libraryView); } catch {}
+      renderLibrary();
+      elements.viewRoot.querySelector(`[data-library-view="${libraryView}"]`).focus();
+      return;
+    }
+    if (event.target.closest("[data-toggle-filters]")) {
+      filtersOpen = !filtersOpen;
+      renderLibrary();
+      elements.viewRoot.querySelector("[data-toggle-filters]").focus();
+      return;
+    }
     const modalityButton = event.target.closest("[data-modality]");
     const qualityButton = event.target.closest("[data-quality-filter]");
     const clearButton = event.target.closest("[data-clear-filters]");
     const favoriteButton = event.target.closest("[data-favorite]");
     const followButton = event.target.closest("[data-follow]");
-    const warningButton = event.target.closest("[data-add-warning]");
     const accountButton = event.target.closest("[data-open-account]");
     const cardLink = event.target.closest("[data-card-href]");
 
@@ -352,6 +428,7 @@ function bindEvents() {
     if (qualityButton) {
       toggleArrayValue(filters.qualities, qualityButton.dataset.qualityFilter);
       render();
+      Array.from(elements.viewRoot.querySelectorAll("[data-quality-filter]")).find(button => button.dataset.qualityFilter === qualityButton.dataset.qualityFilter)?.focus();
       return;
     }
 
@@ -373,11 +450,6 @@ function bindEvents() {
       return;
     }
 
-    if (warningButton) {
-      addWarning(warningButton.dataset.playlistId, warningButton.dataset.addWarning);
-      return;
-    }
-
     if (accountButton) {
       openAccountDialog();
       return;
@@ -389,9 +461,11 @@ function bindEvents() {
   });
 
   elements.viewRoot.addEventListener("change", (event) => {
-    if (event.target.matches("[data-hide-warnings]")) {
-      filters.hideWarnings = event.target.checked;
+    if (event.target.matches("[data-exclude-warning]")) {
+      const value = event.target.dataset.excludeWarning;
+      toggleArrayValue(filters.excludedWarnings, value);
       render();
+      Array.from(elements.viewRoot.querySelectorAll("[data-exclude-warning]")).find(input => input.dataset.excludeWarning === value)?.focus();
     }
 
     if (event.target.matches("[data-sort-select]")) {
@@ -410,15 +484,12 @@ function bindEvents() {
   });
 
   elements.viewRoot.addEventListener("submit", (event) => {
-    if (event.target.matches("[data-warning-form]")) {
+    if (event.target.matches("[data-listening-form]")) {
       event.preventDefault();
-      const formData = new FormData(event.target);
-      const warning = String(formData.get("warning") || "").trim();
-      addWarning(event.target.dataset.warningForm, warning);
-      event.target.reset();
+      const data = new FormData(event.target);
+      addWarning(event.target.dataset.listeningForm, data.get("warning"), data.get("context"));
       return;
     }
-
     if (!event.target.matches("[data-comment-form]")) return;
     event.preventDefault();
 
@@ -494,6 +565,38 @@ function bindEvents() {
     showToast("Account created");
   });
 
+  elements.playlistForm.addEventListener("click", (event) => {
+    if (event.target.closest("[data-editor-back]")) {
+      editorKey = null;
+      editingId = null;
+    }
+    const add = event.target.closest("[data-add-arc-point]");
+    const remove = event.target.closest("[data-remove-arc-point]");
+    if (!add && !remove) return;
+    const values = getArcBuilderValues();
+    if (add) {
+      values.push(values[values.length - 1]);
+      renderArcBuilder(values);
+      elements.arcBuilder.querySelectorAll("[data-arc-point]")[values.length - 1].focus();
+    } else if (values.length > 2) {
+      const index = Number(remove.dataset.removeArcPoint);
+      values.splice(index, 1);
+      renderArcBuilder(values);
+      elements.arcBuilder.querySelectorAll("[data-arc-point]")[Math.min(index, values.length - 1)].focus();
+    }
+  });
+
+  elements.playlistForm.addEventListener("change", (event) => {
+    const input = event.target;
+    if (input.name !== "quality" || !input.checked || !qualityGroups.Voice.includes(input.value)) return;
+    elements.qualityChoices.querySelectorAll('input[name="quality"]').forEach(other => {
+      if (other !== input && qualityGroups.Voice.includes(other.value) && (input.value === "no vocals" || other.value === "no vocals")) {
+        other.checked = false;
+        other.closest(".pill-button").classList.remove("active");
+      }
+    });
+  });
+
   elements.playlistForm.addEventListener("input", (event) => {
     if (!event.target.matches("[data-arc-point]")) return;
     syncArcBuilderPreview();
@@ -520,9 +623,18 @@ function bindEvents() {
     const duration = hours ? `${hours}h${minutes ? ` ${minutes}m` : ""}` : `${minutes}m`;
     const serviceLink = String(formData.get("serviceLink") || "").trim();
     const energyCurve = getArcBuilderValues();
+    const existing = editingId ? getPlaylist(editingId) : null;
+    if (editingId && (!existing || existing.creatorId !== currentUser.id)) {
+      elements.playlistError.textContent = "You can only edit your own contributions.";
+      return;
+    }
+    if (!parsePlaylistLink(serviceLink)) {
+      elements.playlistError.textContent = "Add a direct playlist link. Service homepages, albums, and individual tracks are not playlist links.";
+      return;
+    }
 
     if (!title || selectedQualities.length === 0) {
-      elements.playlistError.textContent = "Add a title and at least one quality.";
+      elements.playlistError.textContent = "Add a title and at least one tag.";
       return;
     }
 
@@ -535,6 +647,10 @@ function bindEvents() {
       duration,
       qualities: selectedQualities,
       warnings: warningMapFrom(selectedWarnings),
+      taxonomyVersion: 1,
+      listeningReviewed: formData.get("listeningReviewed") === "on",
+      listeningContext: String(formData.get("listeningContext") || "").trim(),
+      listeningReports: selectedWarnings.map(label => ({ label, userId: currentUser.id, context: "" })),
       savedCount: 0,
       createdAt: new Date().toISOString(),
       coverA: randomCoverColor(),
@@ -545,15 +661,45 @@ function bindEvents() {
       comments: []
     };
 
-    state.playlists.unshift(playlist);
+    if (existing) {
+      // Editing metadata must not erase saves, discussion, or other people's observations.
+      const otherReports = (existing.listeningReports || []).filter(report => report.userId !== currentUser.id);
+      const ownerBefore = existing.creatorWarningLabels || Object.keys(existing.warnings || {}).filter(label => warningOptions.includes(label) && !(existing.listeningReports || []).some(report => report.label === label && report.userId !== currentUser.id));
+      const retainedWarnings = Object.fromEntries(Object.entries(existing.warnings || {}).filter(([label]) => !ownerBefore.includes(label)));
+      const oldLink = Object.values(existing.links || {})[0];
+      const links = { ...existing.links };
+      if (oldLink !== serviceLink) {
+        delete links[Object.keys(links)[0]];
+        Object.assign(links, playlist.links);
+      }
+      const ownerReports = playlist.listeningReports.map(report => ({
+        ...report,
+        context: (existing.listeningReports || []).find(previous => previous.userId === currentUser.id && previous.label === report.label)?.context || ""
+      }));
+      Object.assign(existing, {
+        title, modality: playlist.modality, energyCurve, duration, qualities: selectedQualities,
+        notes: playlist.notes, links, listeningReviewed: playlist.listeningReviewed,
+        listeningContext: playlist.listeningContext,
+        creatorWarningLabels: selectedWarnings,
+        warnings: { ...retainedWarnings, ...warningMapFrom(otherReports.map(report => report.label)), ...playlist.warnings },
+        listeningReports: [...otherReports, ...ownerReports],
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      playlist.creatorWarningLabels = selectedWarnings;
+      state.playlists.unshift(playlist);
+    }
+    const savedId = existing?.id || playlist.id;
     saveState();
     elements.playlistForm.reset();
     resetChoicePills();
     elements.playlistError.textContent = "";
     renderArcBuilder(defaultCreateCurve);
-    location.hash = `#playlist/${playlist.id}`;
+    editorKey = null;
+    editingId = null;
+    location.hash = `#playlist/${savedId}`;
     render();
-    showToast("Playlist saved");
+    showToast(existing ? "Changes saved" : "Playlist added");
   });
 
   document.querySelectorAll("[data-close-dialog]").forEach((button) => {
@@ -572,9 +718,15 @@ function render() {
   renderAccount();
 
   const route = currentRoute();
-  elements.createPage.hidden = route.view !== "create";
-  elements.viewRoot.hidden = route.view === "create";
-  if (route.view === "create") return;
+  const isEditor = route.view === "create" || route.view === "edit";
+  document.querySelectorAll(".library-nav a").forEach(link => {
+    if (link.hash === `#${route.view}`) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  elements.createPage.hidden = !isEditor;
+  elements.viewRoot.hidden = isEditor;
+  if (isEditor) { prepareEditor(route); return; }
+  if (route.view === "listening-guide") { renderListeningGuide(); return; }
   if (route.view === "playlist") {
     renderPlaylistDetail(route.id);
     return;
@@ -616,11 +768,26 @@ function renderAccount() {
 }
 
 function renderLibrary() {
+  const section = currentRoute().view;
+  const personal = section === "saved" || section === "contributions";
+  const heading = section === "saved" ? "Saved playlists" : section === "contributions" ? "My contributions" : "Music to hold the space.";
+  const description = section === "saved" ? "Your shortlist, ready to revisit." : section === "contributions" ? "Playlists you have added to the library." : "Explore playlists shared by therapists and facilitators.";
+  if (personal && !getCurrentUser()) {
+    elements.viewRoot.innerHTML = `<section class="personal-empty"><h2>${heading}</h2><p>Use a prototype account to see your playlists.</p><button class="primary-button" data-open-account>Join</button><p>Or use Preview as @mayachen above.</p></section>`;
+    return;
+  }
   const playlists = filteredPlaylists();
+  const hasPersonalItems = section === "saved" ? savedPlaylistIds().length > 0 : creatorPlaylists(state.currentUserId).length > 0;
+  const emptyMessage = personal && !hasPersonalItems ? (section === "saved" ? 'No saved playlists yet. Choose Save on any playlist to keep it here.<br><a class="text-button" href="#library">Explore the library</a>' : 'You have not added any playlists yet.<br><a class="text-button" href="#create">Add your first playlist</a>') : 'No playlists found. Try another search or clear your filters.<br><button type="button" class="text-button" data-clear-filters>Clear filters</button>';
 
   elements.viewRoot.innerHTML = `
     <div class="library-layout">
-      <aside class="filters-panel" aria-label="Playlist filters">
+      <header class="library-intro">
+        <div><p class="eyebrow">The library</p><h2>${heading}</h2>
+        <p>${description}</p></div>
+        <a class="primary-button" href="#create">+ Add a playlist</a>
+      </header>
+      <aside id="libraryFilters" class="filters-panel" ${filtersOpen ? "" : "hidden"} aria-label="Playlist filters">
         <section class="filter-section">
           <div class="section-heading">
             <h2>Modality</h2>
@@ -632,26 +799,22 @@ function renderLibrary() {
         </section>
 
         <section class="filter-section">
-          <h2>Music Qualities</h2>
-          <div class="pill-list">
-            ${qualities.map((quality) => filterPill(quality, filters.qualities.includes(quality))).join("")}
-          </div>
+          <h2>Music tags</h2>
+          <p class="field-hint">Match all selected tags.</p>
+          ${groupedChoices(qualityGroups, quality => filterPill(quality, filters.qualities.includes(quality)))}
         </section>
-
         <section class="filter-section">
-          <h2>Warnings</h2>
-          <label class="toggle-row">
-            <input data-hide-warnings type="checkbox" ${filters.hideWarnings ? "checked" : ""}>
-            <span>Hide warning-tagged</span>
-          </label>
+          <h2>Prefer to exclude…</h2>
+          <p class="field-hint">Hide playlists with any selected note. Unreported content may still be present. <a href="#listening-guide">About listening notes</a></p>
+          ${[...warningOptions, ...new Set(state.playlists.flatMap(p => warningEntries(p).map(([label]) => label)).filter(label => !warningOptions.includes(label)))].map(warning => `<label class="toggle-row"><input data-exclude-warning="${escapeAttribute(warning)}" type="checkbox" ${filters.excludedWarnings.includes(warning) ? "checked" : ""}><span>${escapeHtml(titleCase(warning))}</span></label>`).join("")}
         </section>
       </aside>
 
       <section class="playlist-column" aria-label="Playlists">
         <div class="column-toolbar">
           <div>
-            <p class="eyebrow">${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}</p>
-            <h2>Browse Library</h2>
+            <button type="button" class="ghost-button filter-trigger" data-toggle-filters aria-expanded="${filtersOpen}" aria-controls="libraryFilters">Filters${filters.qualities.length + (filters.modality !== "All" ? 1 : 0) + filters.excludedWarnings.length ? ` · ${filters.qualities.length + (filters.modality !== "All" ? 1 : 0) + filters.excludedWarnings.length}` : ""}</button>
+            <span class="result-count" role="status">${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}</span>
           </div>
           <div class="toolbar-actions">
             <label for="sortSelect" class="sr-only">Sort playlists</label>
@@ -661,12 +824,15 @@ function renderLibrary() {
               <option value="favorites" ${filters.sort === "favorites" ? "selected" : ""}>Most saved</option>
               <option value="comments" ${filters.sort === "comments" ? "selected" : ""}>Most discussed</option>
             </select>
-            <a class="primary-button" href="#create">Create</a>
+            <div class="view-switch" role="group" aria-label="Library view">
+              <button type="button" data-library-view="cards" aria-pressed="${libraryView === "cards"}"><span aria-hidden="true">▦</span> Cards</button>
+              <button type="button" data-library-view="list" aria-pressed="${libraryView === "list"}"><span aria-hidden="true">☰</span> List</button>
+            </div>
           </div>
         </div>
 
-        <div class="playlist-grid">
-          ${playlists.length ? playlists.map(playlistCard).join("") : `<div class="empty-state">No matches.</div>`}
+        <div class="playlist-grid ${libraryView === "list" ? "playlist-list" : ""}">
+          ${playlists.length ? playlists.map(playlistCard).join("") : `<div class="empty-state">${emptyMessage}</div>`}
         </div>
       </section>
     </div>
@@ -699,7 +865,7 @@ function renderPlaylistDetail(playlistId) {
   }
 
   const creator = getUser(playlist.creatorId);
-  const isFavorite = state.favorites.includes(playlist.id);
+  const isFavorite = savedPlaylistIds().includes(playlist.id);
   const isFollowing = state.follows.includes(playlist.creatorId);
   const allTags = [playlist.modality, ...playlist.qualities];
   const commentRows = playlist.comments.map(commentRow).join("");
@@ -716,7 +882,7 @@ function renderPlaylistDetail(playlistId) {
               <h2>${escapeHtml(playlist.title)}</h2>
               <div class="detail-stats">
                 <span>${escapeHtml(playlist.duration)}</span>
-                <span>${playlist.savedCount + (isFavorite ? 1 : 0)} saved</span>
+                <span>${playlist.savedCount} saved</span>
                 <span>${playlist.comments.length} comments</span>
               </div>
             </div>
@@ -725,6 +891,10 @@ function renderPlaylistDetail(playlistId) {
             </button>
           </div>
 
+          <div class="playlist-primary-actions">
+            ${listeningLinks(playlist)}
+            ${playlist.creatorId === state.currentUserId ? `<a class="ghost-button" href="#edit/${playlist.id}">Edit playlist</a><button type="button" class="text-button danger-button" data-delete-playlist="${playlist.id}">Delete playlist</button>` : ""}
+          </div>
           <div class="creator-row compact">
             <a class="mini-profile" href="#profile/${creator?.id || ""}">
               <div class="avatar">${escapeHtml(creator?.initials || "?")}</div>
@@ -757,19 +927,12 @@ function renderPlaylistDetail(playlistId) {
           </section>
 
           <section class="detail-section">
-            <h3>Community Warnings</h3>
+            <h3>Listening notes</h3>
             ${warningPanel(playlist)}
           </section>
 
-          ${playlist.tracks.length ? `<section class="detail-section">
-            <h3>Tracklist</h3>
-            <ol class="track-list">
-              ${playlist.tracks.map(trackRow).join("")}
-            </ol>
-          </section>` : ""}
-
-          <section class="detail-section">
-            <h3>Discussion</h3>
+          <section class="detail-section comments-section">
+            <h3>Comments</h3>
             <div class="comment-list">
               ${commentRows || `<div class="empty-state">No comments yet.</div>`}
             </div>
@@ -781,9 +944,7 @@ function renderPlaylistDetail(playlistId) {
           <section class="detail-section">
             <h3>Listen</h3>
             <div class="service-row">
-              ${serviceLink("Spotify", playlist.links.spotify)}
-              ${serviceLink("YouTube", playlist.links.youtube)}
-              ${serviceLink("Apple", playlist.links.apple)}
+              ${listeningLinks(playlist)}
             </div>
           </section>
         </aside>
@@ -868,7 +1029,7 @@ function modalityButton(modality) {
 
 function filterPill(value, active) {
   return `
-    <button type="button" class="pill-button ${active ? "active" : ""}" data-quality-filter="${escapeAttribute(value)}">
+    <button type="button" class="pill-button ${active ? "active" : ""}" aria-pressed="${active}" data-quality-filter="${escapeAttribute(value)}">
       ${titleCase(value)}
     </button>
   `;
@@ -876,21 +1037,21 @@ function filterPill(value, active) {
 
 function playlistCard(playlist) {
   const creator = getUser(playlist.creatorId);
-  const isFavorite = state.favorites.includes(playlist.id);
+  const isFavorite = savedPlaylistIds().includes(playlist.id);
   const tags = [playlist.modality, ...playlist.qualities.slice(0, 3)];
-  const warningsHtml = warningEntries(playlist).slice(0, 2).map(([tag, count]) => `<span class="tag warning">${titleCase(tag)} ${count}</span>`).join("");
+  const warningsHtml = warningEntries(playlist).slice(0, 2).map(([tag]) => `<span class="tag listening-note">${escapeHtml(titleCase(tag))}${warningOptions.includes(tag) ? "" : " · legacy note"}</span>`).join("");
 
   return `
     <article class="playlist-card clickable-card" data-card-href="playlist/${playlist.id}" tabindex="0" role="link" aria-label="Open ${escapeAttribute(playlist.title)}">
       <div class="cover-art" style="--cover-a: ${playlist.coverA}; --cover-b: ${playlist.coverB};"></div>
       <div class="card-body">
-        <div>
+        <div class="card-identity">
           <div class="card-title-row">
             <div>
               <h3>${escapeHtml(playlist.title)}</h3>
               <p class="meta-line">
                 <a href="#profile/${creator?.id || ""}">${escapeHtml(displayUserName(creator))}</a>
-                <span>-</span>
+                <span aria-hidden="true">·</span>
                 <span>${escapeHtml(playlist.duration)}</span>
               </p>
             </div>
@@ -903,12 +1064,12 @@ function playlistCard(playlist) {
           ${energyChart(playlist.energyCurve, "mini")}
         </div>
         <div class="tag-row">
-          ${tags.map((tag, index) => `<span class="tag ${index === 0 ? "modality" : ""}">${titleCase(tag)}</span>`).join("")}
+          ${tags.map((tag, index) => `<span class="tag ${index === 0 ? "modality" : ""}">${escapeHtml(titleCase(tag))}</span>`).join("")}
           ${warningsHtml}
         </div>
         <div class="card-actions">
           <div class="card-stats">
-            <span>${playlist.savedCount + (isFavorite ? 1 : 0)} saved</span>
+            <span>${playlist.savedCount} saved</span>
             <span>${playlist.comments.length} comments</span>
           </div>
         </div>
@@ -944,19 +1105,7 @@ function tagChip(tag, playlist) {
   const className = tag === playlist.modality
       ? "tag modality"
       : "tag";
-  return `<span class="${className}">${titleCase(tag)}</span>`;
-}
-
-function trackRow(track, index) {
-  return `
-    <li>
-      <span class="track-number">${index + 1}</span>
-      <div>
-        <strong>${escapeHtml(track.title)}</strong>
-        <span>${escapeHtml(track.artist)}</span>
-      </div>
-    </li>
-  `;
+  return `<span class="${className}">${escapeHtml(titleCase(tag))}</span>`;
 }
 
 function commentRow(comment) {
@@ -973,7 +1122,7 @@ function commentForm(playlistId) {
   return `
     <form class="comment-form" data-comment-form="${playlistId}">
       <label class="sr-only" for="comment-${playlistId}">Add comment</label>
-      <textarea id="comment-${playlistId}" name="comment" placeholder="Context, warnings, adaptations"></textarea>
+      <textarea id="comment-${playlistId}" name="comment" placeholder="Context, listening notes, adaptations"></textarea>
       <button type="submit" class="primary-button">Comment</button>
     </form>
   `;
@@ -981,35 +1130,35 @@ function commentForm(playlistId) {
 
 function warningPanel(playlist) {
   const entries = warningEntries(playlist);
-  const existing = new Set(entries.map(([label]) => label));
-  const quickWarnings = warningOptions.filter((warning) => !existing.has(warning));
+  const reports = playlist.listeningReports || [];
+  const available = warningOptions.filter(label => !reports.some(report => report.label === label && report.userId === state.currentUserId));
+  return `<div class="warning-panel">
+    <p class="field-hint">Specific observations to help you choose. <a href="#listening-guide">How to use listening notes</a></p>
+    <div class="warning-list">${entries.length ? entries.map(([label]) => `<span class="tag listening-note" title="${escapeAttribute(warningDefinitions[label] || "Earlier community label; meaning has not been reviewed.")}">${escapeHtml(titleCase(label))}${warningOptions.includes(label) ? "" : " · legacy note"}</span>`).join("") : `<p class="field-hint">${playlist.listeningReviewed ? "Creator reviewed the listening-note categories and marked none." : "No listening notes added yet. This playlist has not been marked as reviewed."}</p>`}</div>
+    ${entries.length && playlist.listeningReviewed ? '<p class="field-hint">Creator marked the listening-note categories as reviewed.</p>' : ""}
+    ${playlist.listeningContext ? `<p class="listening-context">${escapeHtml(playlist.listeningContext)}</p>` : ""}
+    ${playlist.legacyQualities?.length ? `<p class="field-hint">Earlier music tags: ${escapeHtml(playlist.legacyQualities.join(", "))}. Retained for context; not assigned to new categories.</p>` : ""}
+    ${reports.filter(report => report.context).map(report => `<p class="listening-context"><strong>${escapeHtml(titleCase(report.label))}</strong> · ${escapeHtml(displayUserName(getUser(report.userId)))}<br>${escapeHtml(report.context)}</p>`).join("")}
+    ${getCurrentUser() ? available.length ? `<form class="listening-form" data-listening-form="${playlist.id}">
+      <label>Add a listening note<select name="warning">${Object.entries(listeningGroups).map(([group, definitions]) => `<optgroup label="${group}">${Object.keys(definitions).filter(label => available.includes(label)).map(label => `<option value="${label}">${titleCase(label)}</option>`).join("")}</optgroup>`).join("")}</select></label>
+      <label>Track or context (optional)<textarea name="context" maxlength="1000" rows="2" placeholder="e.g. Track 3, around 1:20 — a sudden percussion entrance."></textarea></label>
+      <button class="primary-button" type="submit">Add listening note</button>
+      <p class="field-hint">Each account can add each category once per playlist.</p>
+    </form>` : '<p class="field-hint">You have contributed every listening-note category.</p>' : '<button type="button" class="ghost-button" data-open-account>Join to add a listening note</button>'}
+  </div>`;
+}
 
-  return `
-    <div class="warning-panel">
-      <div class="warning-list">
-        ${entries.length ? entries.map(([label, count]) => `
-          <button type="button" class="warning-chip" data-playlist-id="${playlist.id}" data-add-warning="${escapeAttribute(label)}">
-            <span>${titleCase(label)}</span>
-            <strong>${count}</strong>
-          </button>
-        `).join("") : `<div class="empty-state">No warnings added yet.</div>`}
-      </div>
-
-      <div class="quick-warning-list">
-        ${quickWarnings.map((warning) => `
-          <button type="button" class="pill-button" data-playlist-id="${playlist.id}" data-add-warning="${escapeAttribute(warning)}">
-            ${titleCase(warning)}
-          </button>
-        `).join("")}
-      </div>
-
-      <form class="input-action-row warning-form" data-warning-form="${playlist.id}">
-        <label class="sr-only" for="warning-${playlist.id}">Add warning</label>
-        <input id="warning-${playlist.id}" name="warning" placeholder="Custom warning">
-        <button type="submit" class="ghost-button">Add</button>
-      </form>
-    </div>
-  `;
+function renderListeningGuide() {
+  elements.viewRoot.innerHTML = `<article class="listening-guide">
+    <a class="back-link" href="#library">Back to library</a>
+    <header><p class="eyebrow">A shared vocabulary</p><h2>Listen with more context.</h2><p class="guide-intro">Listening notes describe what is in the music so people can make choices that fit their preferences and setting.</p></header>
+    <section><h3>What these notes mean</h3><p>These are the library’s warning tags, expressed as specific, neutral observations. A note is not a rating, a prediction of someone’s reaction, or a clinical safety assessment. Religious or devotional music, for example, may be something a listener seeks or prefers to exclude.</p><p>Music tags describe the overall sound and mood. Voice tags disclose any vocal content present. Listening notes identify particular sounds or subjects that deserve advance context, even if they occur only once.</p></section>
+    ${Object.entries(listeningGroups).map(([group, definitions]) => `<section><h3>${group}</h3><dl class="definition-list">${Object.entries(definitions).map(([label, definition]) => `<div><dt>${titleCase(label)}</dt><dd>${definition}</dd></div>`).join("")}</dl></section>`).join("")}
+    <section><h3>How to contribute</h3><ol><li>Choose a category based on something you heard. Do not infer content from a title, artist, language, or genre.</li><li>Add a track title, timestamp, or short description when possible. For a transition, name the tracks on either side.</li><li>Keep descriptions factual and brief. Avoid graphic quotations or claims about how everyone will respond.</li></ol><p>For example: “Track 3, around 1:20 — percussion enters much louder than the preceding passage.” Lyrics on their own belong under Sung lyrics; a melancholy mood belongs under Melancholic.</p><p>Creators can mark the categories as reviewed. Community members can contribute one note per category per account. We show the categories and context, without a severity score.</p></section>
+    <section><h3>Using exclusions</h3><p>“Prefer to exclude…” hides playlists with any of your selected listening notes. It does not exclude playlists merely for containing lyrics, and it cannot detect content that has not been reported.</p><p>“No listening notes added” means no information has been submitted. “Creator reviewed” records the creator’s review of these categories; it does not guarantee that a playlist suits every listener. Playlist contents may also change on the linked music service.</p></section>
+    <section><h3>Choosing music tags</h3><p>Select the sounds and moods that characterize the playlist overall. Select every voice type that occurs anywhere in it. No vocals cannot be combined with other voice types. Mood words are subjective descriptions, not promised effects.</p><p>Older ambiguous labels, such as Dark/intense, remain visible as legacy notes until reviewed. We do not guess which new category they mean.</p></section>
+    <a class="ghost-button" href="#library">Explore the library</a>
+  </article>`;
 }
 
 function energyChart(values, size = "large") {
@@ -1048,14 +1197,15 @@ function energyChart(values, size = "large") {
 
 function renderArcBuilder(values = defaultCreateCurve) {
   const curve = sanitizeEnergyCurve(values);
-  elements.arcBuilder.innerHTML = arcLabels.map((label, index) => {
-    const value = curve[index] || defaultCreateCurve[index] || 1;
+  elements.arcBuilder.innerHTML = curve.map((value, index) => {
+    const label = index === 0 ? "Start" : index === curve.length - 1 ? "Finish" : `Point ${index + 1}`;
     return `
-      <label class="arc-control">
-        <span>${label}</span>
-        <input type="range" name="arcPoint" min="1" max="5" step="1" value="${value}" data-arc-point>
-        <output>${value}</output>
-      </label>
+      <div class="arc-control">
+        <label for="arc-point-${index}">${label}</label>
+        <output for="arc-point-${index}">${value}</output>
+        <input id="arc-point-${index}" type="range" name="arcPoint" min="1" max="5" step="1" value="${value}" data-arc-point>
+        <button type="button" class="text-button" data-remove-arc-point="${index}" aria-label="Remove point ${index + 1}, ${label}" ${curve.length <= 2 ? "disabled" : ""}>Remove</button>
+      </div>
     `;
   }).join("");
   syncArcBuilderPreview();
@@ -1082,6 +1232,8 @@ function getArcBuilderValues() {
 function filteredPlaylists() {
   const query = normalize(filters.search);
   const rows = state.playlists.filter((playlist) => {
+    if (currentRoute().view === "saved" && !savedPlaylistIds().includes(playlist.id)) return false;
+    if (currentRoute().view === "contributions" && playlist.creatorId !== state.currentUserId) return false;
     const creator = getUser(playlist.creatorId);
     const searchable = normalize([
       playlist.title,
@@ -1091,6 +1243,9 @@ function filteredPlaylists() {
       playlist.modality,
       playlist.notes,
       playlist.qualities.join(" "),
+      (playlist.legacyQualities || []).join(" "),
+      playlist.listeningContext,
+      (playlist.listeningReports || []).map(report => report.context).join(" "),
       warningEntries(playlist).map(([tag]) => tag).join(" "),
       playlist.tracks.map((track) => `${track.artist} ${track.title}`).join(" ")
     ].join(" "));
@@ -1098,7 +1253,7 @@ function filteredPlaylists() {
     const matchesSearch = !query || searchable.includes(query);
     const matchesModality = filters.modality === "All" || playlist.modality === filters.modality;
     const matchesQuality = filters.qualities.length === 0 || filters.qualities.every((quality) => playlist.qualities.includes(quality));
-    const matchesWarnings = !filters.hideWarnings || warningEntries(playlist).length === 0;
+    const matchesWarnings = !warningEntries(playlist).some(([label]) => filters.excludedWarnings.includes(label));
 
     return matchesSearch && matchesModality && matchesQuality && matchesWarnings;
   });
@@ -1116,7 +1271,7 @@ function clearFilters() {
     search: "",
     modality: "All",
     qualities: [],
-    hideWarnings: false,
+    excludedWarnings: [],
     sort: "recommended"
   };
   elements.searchInput.value = "";
@@ -1131,8 +1286,8 @@ function toggleFavorite(playlistId) {
     return;
   }
 
-  const existed = state.favorites.includes(playlistId);
-  toggleArrayValue(state.favorites, playlistId);
+  const existed = savedPlaylistIds().includes(playlistId);
+  toggleArrayValue(savedPlaylistIds(), playlistId);
   playlist.savedCount = Math.max(0, playlist.savedCount + (existed ? -1 : 1));
   saveState();
   render();
@@ -1154,21 +1309,22 @@ function toggleFollow(userId) {
   render();
 }
 
-function addWarning(playlistId, label) {
+function addWarning(playlistId, label, context = "") {
   const playlist = getPlaylist(playlistId);
   if (!playlist) return;
+  if (!getCurrentUser()) { openAccountDialog(); return; }
   const warning = cleanWarning(label);
-  if (!warning) return;
-
-  playlist.warnings = {
-    ...warningMapFrom(playlist.cautions || []),
-    ...(playlist.warnings || {})
-  };
-  playlist.warnings[warning] = (playlist.warnings[warning] || 0) + 1;
-  delete playlist.cautions;
+  if (!warningOptions.includes(warning)) return;
+  playlist.listeningReports ||= [];
+  if (playlist.listeningReports.some(report => report.label === warning && report.userId === state.currentUserId)) {
+    showToast("You already added this listening note");
+    return;
+  }
+  playlist.listeningReports.push({ label: warning, userId: state.currentUserId, context: String(context || "").trim().slice(0, 1000) });
+  playlist.warnings[warning] = 1;
   saveState();
   render();
-  showToast("Warning added");
+  showToast("Listening note added");
 }
 
 function serviceLink(label, href) {
@@ -1198,22 +1354,97 @@ function sanitizeEnergyCurve(values) {
     .map((value) => Math.max(1, Math.min(5, value)));
 }
 
+function parsePlaylistLink(value) {
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return null;
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname;
+    if (host === "open.spotify.com") {
+      if (!/^\/(?:intl-[a-z-]+\/)?playlist\/[a-zA-Z0-9]+\/?$/.test(path)) return null;
+      return { key: "spotify", label: "Spotify", href: url.href };
+    }
+    if (["youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be"].includes(host)) {
+      if (!url.searchParams.get("list") || !["/playlist", "/watch", "/"].includes(path) && host !== "youtu.be") return null;
+      return { key: "youtube", label: "YouTube", href: url.href };
+    }
+    if (host === "music.apple.com") {
+      if (!/^\/(?:[a-z]{2}\/)?playlist\/.+/.test(path)) return null;
+      return { key: "apple", label: "Apple Music", href: url.href };
+    }
+    if (path === "/" || !path) return null;
+    return { key: "other", label: host, href: url.href };
+  } catch { return null; }
+}
+
 function linkMapFrom(link) {
-  const map = {};
-  if (!link) return map;
-  const lower = link.toLowerCase();
-  if (lower.includes("spotify")) map.spotify = link;
-  else if (lower.includes("youtube") || lower.includes("youtu.be")) map.youtube = link;
-  else if (lower.includes("music.apple") || lower.includes("apple")) map.apple = link;
-  else map.spotify = link;
-  return map;
+  const parsed = parsePlaylistLink(link);
+  return parsed ? { [parsed.key]: parsed.href } : {};
 }
 
 function serviceNameFromLink(link) {
-  const lower = String(link || "").toLowerCase();
-  if (lower.includes("youtube") || lower.includes("youtu.be")) return "YouTube";
-  if (lower.includes("music.apple") || lower.includes("apple")) return "Apple";
-  return "Spotify";
+  return parsePlaylistLink(link)?.label || "music service";
+}
+
+function listeningLinks(playlist) {
+  const links = Object.values(playlist.links || {}).map(parsePlaylistLink).filter(Boolean);
+  if (!links.length) return '<p class="field-hint">No playable link yet. This entry needs a direct playlist URL.</p>';
+  return links.map(link => `<a class="primary-button button-link" href="${escapeAttribute(link.href)}" target="_blank" rel="noopener noreferrer">Open in ${escapeHtml(link.label)} <span aria-hidden="true">↗</span></a>`).join("");
+}
+
+function savedPlaylistIds() {
+  if (!state.currentUserId) return [];
+  return state.favoritesByUser[state.currentUserId] ||= [];
+}
+
+function prepareEditor(route) {
+  const playlist = route.view === "edit" ? getPlaylist(route.id) : null;
+  if (route.view === "edit" && (!playlist || playlist.creatorId !== state.currentUserId)) {
+    elements.createPage.hidden = true;
+    elements.viewRoot.hidden = false;
+    renderNotFound(playlist ? "You can only edit your own contributions" : "Playlist not found");
+    return;
+  }
+  const key = playlist?.id || "create";
+  if (editorKey === key) return;
+  editorKey = key;
+  editingId = playlist?.id || null;
+  const form = elements.playlistForm;
+  form.reset();
+  resetChoicePills();
+  elements.playlistError.textContent = "";
+  form.querySelector("h2").textContent = playlist ? "Edit playlist" : "Add a playlist";
+  form.querySelector('[type="submit"]').textContent = playlist ? "Save changes" : "Add playlist";
+  form.querySelectorAll("[data-editor-back]").forEach(link => link.href = playlist ? `#playlist/${playlist.id}` : "#library");
+  renderArcBuilder(playlist?.energyCurve || defaultCreateCurve);
+  if (!playlist) return;
+  const hours = Number(playlist.duration.match(/(\d+)h/)?.[1] || 0);
+  const minutes = Number(playlist.duration.match(/(\d+)m/)?.[1] || 0);
+  const values = { title: playlist.title, durationHours: hours, durationMinutes: minutes, modality: playlist.modality, notes: playlist.notes, serviceLink: Object.values(playlist.links || {})[0] || "", listeningContext: playlist.listeningContext || "" };
+  for (const [name, value] of Object.entries(values)) form.elements.namedItem(name).value = value;
+  form.elements.namedItem("listeningReviewed").checked = Boolean(playlist.listeningReviewed);
+  const ownerLabels = playlist.creatorWarningLabels || Object.keys(playlist.warnings || {}).filter(label => !(playlist.listeningReports || []).some(report => report.label === label && report.userId !== state.currentUserId));
+  form.querySelectorAll('.form-pills input').forEach(input => {
+    input.checked = (input.name === "quality" ? playlist.qualities : ownerLabels).includes(input.value);
+    input.closest(".pill-button").classList.toggle("active", input.checked);
+  });
+}
+
+function deletePlaylist(id) {
+  const playlist = getPlaylist(id);
+  if (!playlist || playlist.creatorId !== state.currentUserId) return;
+  if (!window.confirm(`Delete “${playlist.title}” from this browser's library? This cannot be undone.`)) return;
+  state.playlists = state.playlists.filter(item => item.id !== id);
+  for (const userId of Object.keys(state.favoritesByUser)) {
+    state.favoritesByUser[userId] = state.favoritesByUser[userId].filter(savedId => savedId !== id);
+  }
+  state.favorites = state.favorites.filter(savedId => savedId !== id);
+  editorKey = null;
+  editingId = null;
+  saveState();
+  location.hash = "#contributions";
+  render();
+  showToast("Playlist deleted");
 }
 
 function warningEntries(playlist) {
@@ -1225,7 +1456,7 @@ function warningEntries(playlist) {
   return Object.entries(warnings)
     .map(([label, count]) => [cleanWarning(label), Number(count) || 0])
     .filter(([label, count]) => label && count > 0)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    .sort((a, b) => a[0].localeCompare(b[0]));
 }
 
 function warningMapFrom(values) {

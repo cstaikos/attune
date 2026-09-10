@@ -10,7 +10,7 @@
     <div class="app-shell">
       <header class="topbar">
         <a class="brand-block" href="#library" aria-label="Resonance library home">
-          <div class="brand-mark" aria-hidden="true">R</div>
+          <div class="brand-mark" aria-hidden="true">∿</div>
           <div>
             <h1>Resonance</h1>
             <p>Session music library</p>
@@ -19,23 +19,33 @@
 
         <div class="topbar-search">
           <label for="searchInput" class="sr-only">Search playlists</label>
-          <input id="searchInput" type="search" placeholder="Search playlists, creators, tags, tracks">
+          <input id="searchInput" type="search" placeholder="Search the library">
         </div>
 
         <div class="account-bar" id="accountBar"></div>
       </header>
 
+      <nav class="library-nav" aria-label="Library sections">
+        <a href="#library">Library</a>
+        <a href="#saved">Saved</a>
+        <a href="#contributions">My contributions</a>
+      </nav>
       <main class="view-root" id="viewRoot"></main>
     <main class="view-root create-page" id="createPage" hidden>
       <form class="create-form" id="playlistForm">
         <div class="modal-header">
           <div>
-            <h2>Create Playlist</h2>
+            <h2>Add a playlist</h2>
           </div>
-          <a class="ghost-button" href="#library">Back to library</a>
+          <a class="ghost-button" href="#library" data-editor-back>Back</a>
         </div>
 
         <div class="form-grid two-column">
+          <label class="full-span">
+            Playlist link
+            <input name="serviceLink" type="url" required placeholder="Paste a direct playlist URL" aria-describedby="playlistLinkHint">
+            <span class="field-hint" id="playlistLinkHint">Spotify, YouTube, Apple Music, or another service. Link to the playlist itself.</span>
+          </label>
           <label>
             Title
             <input name="title" required placeholder="Playlist title">
@@ -51,38 +61,42 @@
             Modality
             <select name="modality" required id="playlistModalitySelect"></select>
           </label>
-          <div class="form-control">
-            Energy Curve
-            <div class="arc-builder" id="arcBuilder"></div>
+          <fieldset class="field-group energy-field full-span">
+            <legend>Energy curve</legend>
+            <p class="field-hint" id="energyHint">Shape the energy from start to finish. Points are spaced evenly through the playlist.</p>
             <div class="arc-preview" id="arcPreview"></div>
-          </div>
+            <div class="arc-builder" id="arcBuilder" aria-describedby="energyHint"></div>
+            <button type="button" class="ghost-button" data-add-arc-point>Add point</button>
+          </fieldset>
           <label class="full-span">
             Notes
             <textarea name="notes" rows="4" placeholder="Setting, pacing, transitions, facilitation notes"></textarea>
           </label>
-          <label class="full-span">
-            Service Link
-            <input name="serviceLink" type="url" placeholder="Spotify, YouTube, Apple Music, or other URL">
-          </label>
+
         </div>
 
         <fieldset class="field-group">
-          <legend>Qualities</legend>
-          <div class="pill-list form-pills" id="qualityChoices"></div>
+          <legend>Music tags</legend>
+          <p class="field-hint">Choose at least one. Describe the overall sound and mood; include every voice type present.</p>
+          <div class="form-pills" id="qualityChoices"></div>
         </fieldset>
 
         <fieldset class="field-group">
-          <legend>Warnings</legend>
-          <div class="pill-list form-pills" id="warningChoices"></div>
+          <legend>Listening notes</legend>
+          <p class="field-hint">Flag specific sounds or subjects, even if they occur only once. <a href="#listening-guide">Read the listening notes guide</a></p>
+          <div class="form-pills" id="warningChoices"></div>
+          <label class="context-field">Track or context (optional)<textarea name="listeningContext" maxlength="1000" rows="2" placeholder="Name the note, track, and timestamp when helpful."></textarea></label>
+          <label class="toggle-row"><input type="checkbox" name="listeningReviewed"><span>I reviewed the playlist against these listening-note categories.</span></label>
         </fieldset>
 
         <p class="form-error" id="playlistError" role="alert"></p>
         <div class="modal-actions">
-          <a class="ghost-button" href="#library">Cancel</a>
-          <button type="submit" class="primary-button">Save Playlist</button>
+          <a class="ghost-button" href="#library" data-editor-back>Cancel</a>
+          <button type="submit" class="primary-button">Add playlist</button>
         </div>
       </form>
     </main>
+      <footer class="site-footer"><a href="#listening-guide">About tags &amp; listening notes</a></footer>
     </div>
 
     <dialog class="modal" id="accountDialog">

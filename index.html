@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resonance Library</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand-block" href="#library" aria-label="Resonance library home">
+          <div class="brand-mark" aria-hidden="true">R</div>
+          <div>
+            <h1>Resonance</h1>
+            <p>Session music library</p>
+          </div>
+        </a>
+
+        <div class="topbar-search">
+          <label for="searchInput" class="sr-only">Search playlists</label>
+          <input id="searchInput" type="search" placeholder="Search playlists, creators, tags, tracks">
+        </div>
+
+        <div class="account-bar" id="accountBar"></div>
+      </header>
+
+      <main class="view-root" id="viewRoot"></main>
+    <main class="view-root create-page" id="createPage" hidden>
+      <form class="create-form" id="playlistForm">
+        <div class="modal-header">
+          <div>
+            <h2>Create Playlist</h2>
+          </div>
+          <a class="ghost-button" href="#library">Back to library</a>
+        </div>
+
+        <div class="form-grid two-column">
+          <label>
+            Title
+            <input name="title" required placeholder="Playlist title">
+          </label>
+          <fieldset class="duration-field">
+            <legend>Duration</legend>
+            <div class="duration-inputs">
+              <label>Hours<input type="number" name="durationHours" min="0" step="1" value="0" required inputmode="numeric"></label>
+              <label>Minutes<input type="number" name="durationMinutes" min="0" max="59" step="1" value="0" required inputmode="numeric"></label>
+            </div>
+          </fieldset>
+          <label>
+            Modality
+            <select name="modality" required id="playlistModalitySelect"></select>
+          </label>
+          <div class="form-control">
+            Energy Curve
+            <div class="arc-builder" id="arcBuilder"></div>
+            <div class="arc-preview" id="arcPreview"></div>
+          </div>
+          <label class="full-span">
+            Notes
+            <textarea name="notes" rows="4" placeholder="Setting, pacing, transitions, facilitation notes"></textarea>
+          </label>
+          <label class="full-span">
+            Service Link
+            <input name="serviceLink" type="url" placeholder="Spotify, YouTube, Apple Music, or other URL">
+          </label>
+        </div>
+
+        <fieldset class="field-group">
+          <legend>Qualities</legend>
+          <div class="pill-list form-pills" id="qualityChoices"></div>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Warnings</legend>
+          <div class="pill-list form-pills" id="warningChoices"></div>
+        </fieldset>
+
+        <p class="form-error" id="playlistError" role="alert"></p>
+        <div class="modal-actions">
+          <a class="ghost-button" href="#library">Cancel</a>
+          <button type="submit" class="primary-button">Save Playlist</button>
+        </div>
+      </form>
+    </main>
+    </div>
+
+    <dialog class="modal" id="accountDialog">
+      <form method="dialog" class="modal-body" id="accountForm">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Private Beta</p>
+            <h2>Create Account</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-dialog aria-label="Close">x</button>
+        </div>
+
+        <div class="form-grid two-column">
+          <label>
+            Username
+            <input name="username" required placeholder="quiet-horizon" autocomplete="username">
+          </label>
+          <label>
+            Display Name
+            <input name="displayName" placeholder="Optional">
+          </label>
+          <label>
+            Practice Context
+            <input name="practice" required placeholder="Therapist, facilitator, researcher">
+          </label>
+          <label>
+            Location
+            <input name="location" placeholder="Optional">
+          </label>
+          <label class="full-span">
+            Bio
+            <textarea name="bio" rows="3" placeholder="Optional"></textarea>
+          </label>
+          <label class="full-span">
+            Invite Code
+            <input name="invite" required placeholder="Invite code">
+          </label>
+        </div>
+
+        <p class="form-error" id="accountError"></p>
+        <div class="modal-actions">
+          <button type="button" class="ghost-button" data-close-dialog>Cancel</button>
+          <button type="submit" class="primary-button">Join</button>
+        </div>
+      </form>
+    </dialog>
+
+
+
+    <script src="app.js"></script>
+  </body>
+</html>

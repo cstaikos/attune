@@ -1,0 +1,88 @@
+<aside class="filters-panel" id="library-filters" aria-label="Playlist filters">
+  <section class="filter-section">
+    <h2>Modality</h2>
+    <label class="sr-only" for="modality-filter">Modality</label
+    ><select
+      id="modality-filter"
+      [ngModel]="query().modality || ''"
+      (ngModelChange)="patch({modality:$event || undefined})"
+    >
+      <option value="">All modalities</option>
+      @for(m of modalities;track m){
+      <option [value]="m">{{m}}</option>
+      }
+    </select>
+    <h2>Duration</h2>
+    <p class="field-hint">
+      Minutes, including both limits. Leave blank for no limit.
+    </p>
+    <div class="duration-filter-range">
+      <label
+        >At least<input
+          type="number"
+          min="0"
+          step="1"
+          [ngModel]="query().minDuration"
+          (ngModelChange)="patch({minDuration:$event ?? undefined})" /></label
+      ><label
+        >At most<input
+          type="number"
+          min="0"
+          step="1"
+          [ngModel]="query().maxDuration"
+          (ngModelChange)="patch({maxDuration:$event ?? undefined})"
+      /></label>
+    </div>
+    <h2>Music service</h2>
+    @for(service of services;track service.value){<label class="toggle-row"
+      ><input
+        type="checkbox"
+        [checked]="query().services?.includes(service.value)"
+        (change)="toggle('services',service.value)"
+      />{{service.label}}</label
+    >}
+  </section>
+  <section class="filter-section">
+    <h2>Music tags</h2>
+    <p class="field-hint">Match all selected tags.</p>
+    @for(group of musicGroups;track group.name){
+    <fieldset class="choice-group">
+      <legend>{{group.name}}</legend>
+      <div class="pill-list">
+        @for(tag of group.tags;track tag){<button
+          type="button"
+          class="pill-button"
+          [class.active]="query().qualities?.includes(tag)"
+          [attr.aria-pressed]="!!query().qualities?.includes(tag)"
+          (click)="toggle('qualities',tag)"
+        >
+          {{tag | titlecase}}</button
+        >}
+      </div>
+    </fieldset>
+    }
+  </section>
+  <section class="filter-section">
+    <h2>Prefer to exclude…</h2>
+    <p class="field-hint">
+      Hide playlists with any selected note. Unreported content may still be
+      present. <a routerLink="/listening-guide">About listening notes</a>
+    </p>
+    <div class="voice-exclusions">
+      @for(tag of excludedVoices;track tag){<label class="toggle-row"
+        ><input
+          type="checkbox"
+          [checked]="query().excludedQualities?.includes(tag)"
+          (change)="toggle('excludedQualities',tag)"
+        />{{tag | titlecase}}</label
+      >}
+    </div>
+    @for(note of noteLabels;track note){<label class="toggle-row"
+      ><input
+        type="checkbox"
+        [checked]="query().excludedWarnings?.includes(note)"
+        (change)="toggle('excludedWarnings',note)"
+      />{{note | titlecase}}</label
+    >}
+  </section>
+</aside>

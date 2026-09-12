@@ -1,9 +1,227 @@
-/* Existing design tokens and component classes come from ../styles.css.
-   Keep Angular shell adjustments here during the incremental port. */
-app-root { display: block; min-height: 100vh; }
-app-root .app-shell { grid-template-rows: auto auto 1fr auto; }
-app-root .topbar { grid-template-columns: 1fr auto; }
-app-root .library-nav { width: 100%; }
-app-route-placeholder { display: block; width: 100%; }
-.skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 12px; background: var(--surface); transform: translateY(-150%); }
-.skip-link:focus { transform: translateY(0); }
+/* Shared visual language stays in the prototype stylesheet during the port. */
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+app-root .app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+app-root .view-root {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+app-root .topbar {
+  grid-template-columns: 1fr minmax(220px, 340px) 1fr;
+}
+app-root .topbar:not(:has(.topbar-search)) {
+  grid-template-columns: 1fr auto;
+}
+app-root .library-nav {
+  width: 100%;
+}
+app-library-page,
+app-playlist-page,
+app-profile-page,
+app-profiles-page,
+app-editor-page,
+app-auth-page,
+app-guide-page,
+app-route-placeholder,
+app-energy-chart,
+app-page-status,
+app-action-feedback {
+  display: block;
+}
+app-playlist-card {
+  display: block;
+  min-width: 0;
+}
+app-playlist-card .playlist-card {
+  height: 100%;
+}
+app-library-filters {
+  order: 2;
+}
+.library-results {
+  order: 3;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 12px;
+  background: var(--surface);
+  transform: translateY(-150%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.auth-page {
+  max-width: 500px;
+  padding: 48px 24px 64px;
+  margin: auto;
+}
+.auth-page h2 {
+  font:
+    400 2.6rem/1.15 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+}
+.auth-page > p {
+  color: var(--muted);
+}
+.auth-page a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-form fieldset {
+  display: grid;
+  gap: 20px;
+  border: 0;
+  padding: 0;
+  margin: 28px 0;
+}
+.auth-form label,
+.track-editor label {
+  display: grid;
+  gap: 8px;
+}
+.auth-form input {
+  width: 100%;
+}
+.local-demo-note {
+  margin-top: 32px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.local-demo-note summary {
+  cursor: pointer;
+}
+.form-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+fieldset:disabled {
+  opacity: 0.7;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.page-status,
+.page-feedback {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+.page-feedback:has(app-action-feedback:empty),
+.shell-feedback:has(app-action-feedback:empty) {
+  display: none;
+}
+.shell-feedback {
+  padding: 0 24px;
+}
+.success-message {
+  color: var(--teal-dark);
+}
+.confirmation-panel {
+  background: var(--surface-soft);
+  padding: 20px;
+  border-radius: 16px;
+  margin: 16px 0;
+}
+.confirmation-panel button {
+  margin: 4px;
+}
+.track-list {
+  padding-left: 24px;
+}
+.track-list li {
+  padding: 10px 0;
+}
+.track-list span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.track-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.track-editor input {
+  width: 100%;
+  min-width: 0;
+}
+.profile-edit,
+.invitations-panel {
+  padding: 24px;
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+.invite-list {
+  list-style: none;
+  padding: 0;
+}
+.invite-list li {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.invite-list code {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.notes,
+.comment p,
+.profile-bio {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.card-body h3,
+.detail-hero h2 {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1100px) {
+  app-root .topbar {
+    grid-template-columns: 1fr auto;
+  }
+}
+@media (max-width: 720px) {
+  .track-editor {
+    grid-template-columns: 1fr;
+  }
+  .profile-heading-row {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .invite-list li {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .profile-edit,
+  .invitations-panel {
+    padding: 18px;
+  }
+  .auth-page {
+    padding-top: 28px;
+  }
+}
+
+app-playlist-card .meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

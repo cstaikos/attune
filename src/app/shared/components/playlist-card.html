@@ -1,0 +1,54 @@
+<article class="playlist-card">
+  <a
+    class="cover-art"
+    [routerLink]="['/playlist',playlist().id]"
+    [attr.aria-label]="'Open '+playlist().title"
+    [style.--cover-a]="playlist().coverA"
+    [style.--cover-b]="playlist().coverB"
+  ></a>
+  <div class="card-body">
+    <div class="card-identity">
+      <div class="card-title-row">
+        <div>
+          <h3>
+            <a [routerLink]="['/playlist',playlist().id]"
+              >{{playlist().title}}</a
+            >
+          </h3>
+          <p class="meta-line">
+            <a [routerLink]="['/profile',playlist().creatorId]"
+              >{{creator()?.displayName || creator()?.username || 'Member'}}</a
+            ><span aria-hidden="true">·</span
+            ><span>{{playlist().duration}}</span>
+          </p>
+        </div>
+        <button
+          class="save-button"
+          [class.active]="saved()"
+          [disabled]="busy()"
+          [attr.aria-pressed]="saved()"
+          [attr.aria-label]="(saved() ? 'Unsave ' : 'Save ')+playlist().title"
+          (click)="save.emit()"
+        >
+          {{saved() ? 'Saved' : 'Save'}}
+        </button>
+      </div>
+    </div>
+    <div class="mini-chart-wrap">
+      <app-energy-chart [values]="playlist().energyCurve" [mini]="true" />
+    </div>
+    <div class="tag-row">
+      <span class="tag modality">{{playlist().modality}}</span>@for (tag of
+      playlist().qualities.slice(0,3); track tag) {
+      <span class="tag">{{tag | titlecase}}</span> }@for (label of
+      warningLabels(); track label) {
+      <span class="tag listening-note">{{label | titlecase}}</span> }
+    </div>
+    <div class="card-actions">
+      <div class="card-stats">
+        <span>{{playlist().savedCount}} saved</span
+        ><span>{{playlist().comments.length}} comments</span>
+      </div>
+    </div>
+  </div>
+</article>

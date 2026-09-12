@@ -10,3 +10,4 @@ minimumReleaseAgeExclude:
   - '@angular/core@22.1.6'
   - '@angular/platform-browser@22.1.6'
   - '@angular/router@22.1.6'
+  - '@angular/forms@22.1.6'

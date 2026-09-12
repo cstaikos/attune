@@ -1,9 +1,9 @@
-import { ListeningNoteLabel, Modality, MusicTag } from './taxonomy';
+import { ListeningNoteLabel, Modality, MusicTag } from "./taxonomy";
 
 // Domain types are independent of Angular, storage, and any future API provider.
 export type UserId = string;
 export type PlaylistId = string;
-export type MusicService = 'spotify' | 'youtube' | 'apple' | 'other';
+export type MusicService = "spotify" | "youtube" | "apple" | "other";
 export type EnergyLevel = 1 | 2 | 3 | 4 | 5;
 
 export interface Profile {

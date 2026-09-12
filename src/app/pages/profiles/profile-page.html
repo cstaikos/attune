@@ -1,0 +1,115 @@
+<app-page-status
+  [loading]="page.loading()"
+  [error]="page.error()"
+  (retry)="load()"
+/>
+<div class="page-feedback">
+  <app-action-feedback [error]="action.error()" [message]="action.message()" />
+</div>
+@if(page.data();as data){
+<article class="profile-page">
+  <div class="profile-hero">
+    <a class="back-link" routerLink="/profiles">Back to profiles</a>
+    <div class="profile-heading-row">
+      <div class="profile-identity">
+        <div class="avatar profile-avatar">{{data.profile.initials}}</div>
+        <div>
+          <p class="eyebrow">{{data.profile.username}}</p>
+          <h2>{{data.profile.displayName || data.profile.username}}</h2>
+          <p class="meta-line">
+            {{data.profile.practice}} {{data.profile.location ? '·
+            '+data.profile.location : ''}}
+          </p>
+        </div>
+      </div>
+      @if(data.profile.id===member.session()?.userId){<button
+        class="ghost-button"
+        [disabled]="action.busy()"
+        (click)="edit()"
+      >
+        Edit profile</button
+      >}@else{<button
+        class="ghost-button"
+        [disabled]="action.busy()"
+        [attr.aria-pressed]="data.followed.includes(data.profile.id)"
+        (click)="follow()"
+      >
+        {{data.followed.includes(data.profile.id) ? 'Following' : 'Follow'}}</button
+      >}
+    </div>
+    <p class="profile-bio">{{data.profile.bio || 'No bio yet.'}}</p>
+    <div class="profile-stats">
+      <span>{{data.playlists.length}} playlists</span
+      ><span>{{data.profile.followerCount}} followers</span>
+    </div>
+    @if(editing()){
+    <form class="profile-edit" [formGroup]="form" (ngSubmit)="update()">
+      <fieldset class="form-fields" [disabled]="action.busy()">
+        <div class="form-grid two-column">
+          <label>Display name<input formControlName="displayName" /></label
+          ><label
+            >Practice context<input
+              formControlName="practice"
+              required /></label
+          ><label>Location<input formControlName="location" /></label
+          ><label class="full-span"
+            >Bio<textarea formControlName="bio" rows="3"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button
+            class="ghost-button"
+            type="button"
+            (click)="editing.set(false)"
+          >
+            Cancel</button
+          ><button class="primary-button" type="submit">Save profile</button>
+        </div>
+      </fieldset>
+    </form>
+    } @if(data.profile.id===member.session()?.userId){
+    <section class="invitations-panel">
+      <h3>Invite someone</h3>
+      <p>{{data.profile.inviteCount}} invitations remaining.</p>
+      <button
+        class="ghost-button"
+        [disabled]="action.busy() || data.profile.inviteCount<1"
+        (click)="invite()"
+      >
+        Create invitation
+      </button>
+      <ul class="invite-list">
+        @for(invite of data.invitations;track invite.id){
+        <li>
+          <code>{{invite.code}}</code
+          ><span>{{invite.redeemedBy ? 'Used' : 'Available'}}</span>
+        </li>
+        }
+      </ul>
+    </section>
+    }
+  </div>
+  <section class="profile-playlists">
+    <div class="page-heading"><h2>Playlists</h2></div>
+    <div class="playlist-grid">
+      @for(playlist of data.playlists;track playlist.id){<app-playlist-card
+        [playlist]="playlist"
+        [creator]="data.profile"
+        [saved]="data.saved.includes(playlist.id)"
+        [busy]="action.busy()"
+        (save)="save(playlist)"
+      />}@empty{
+      <div class="empty-state">
+        No playlists yet.@if(data.profile.id===member.session()?.userId){
+        <p>
+          <a class="ghost-button" routerLink="/create"
+            >Add your first playlist</a
+          >
+        </p>
+        }
+      </div>
+      }
+    </div>
+  </section>
+</article>
+}

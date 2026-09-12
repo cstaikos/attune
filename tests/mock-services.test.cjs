@@ -134,3 +134,20 @@ test('profile changes whitelist editable fields; invitations consume allowance',
  assert.equal((await app.invites.listMine()).length,3);
  await assert.rejects(app.invites.create(),code('forbidden'));
 });
+
+test('creator reports remain selected and retain context during later edits', async () => {
+ const app = setup(); await join(app);
+ const playlist = await app.playlists.create(draft());
+ await app.playlists.reportListeningNote(playlist.id,{label:'sudden loud sounds',context:'Track 2, 1:20'});
+ const current=await app.playlists.get(playlist.id);
+ assert.deepEqual(current.creatorWarningLabels,['sudden loud sounds']);
+ const updated=await app.playlists.update(playlist.id,draft({title:'Edited',creatorWarningLabels:current.creatorWarningLabels}));
+ assert.equal(updated.listeningReports[0].context,'Track 2, 1:20');
+ assert.equal(updated.warnings['sudden loud sounds'],1);
+});
+
+test('login return destinations reject external locations and auth loops', () => {
+ const { safeReturnUrl } = require('../.angular/mock-tests/utils/return-url');
+ for(const value of [null,'https://example.com','//example.com','/\\example.com','/login','/join?returnUrl=/saved']) assert.equal(safeReturnUrl(value),'/library');
+ assert.equal(safeReturnUrl('/playlist/123?from=saved'),'/playlist/123?from=saved');
+});

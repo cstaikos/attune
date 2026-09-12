@@ -1,0 +1,199 @@
+<div class="create-page">
+  <app-page-status
+    [loading]="page.loading()"
+    [error]="page.error()"
+    (retry)="load()"
+  />
+  @if(!page.loading() && !page.error()){
+  <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="modal-header">
+      <h2>{{id ? 'Edit playlist' : 'Add a playlist'}}</h2>
+      <a class="ghost-button" [routerLink]="cancelLink">Back</a>
+    </div>
+    <fieldset class="form-fields" [disabled]="action.busy()">
+      <div class="form-grid two-column">
+        <label class="full-span"
+          >Title<input
+            formControlName="title"
+            required
+            maxlength="200"
+            placeholder="Playlist title"
+        /></label>
+        <fieldset class="duration-field">
+          <legend>Duration</legend>
+          <div class="duration-inputs">
+            <label
+              >Hours<input
+                type="number"
+                formControlName="hours"
+                min="0"
+                step="1"
+                required /></label
+            ><label
+              >Minutes<input
+                type="number"
+                formControlName="minutes"
+                min="0"
+                max="59"
+                step="1"
+                required
+            /></label>
+          </div>
+        </fieldset>
+        <label
+          >Modality<select formControlName="modality">
+            @for(m of modalities;track m){
+            <option [value]="m">{{m}}</option>
+            }
+          </select></label
+        >
+        <fieldset class="field-group full-span" formGroupName="links">
+          <legend>Playlist links</legend>
+          <p class="field-hint">
+            Add at least one direct playlist URL. Playback opens in the music
+            service.
+          </p>
+          <div class="form-grid two-column">
+            @for(service of services;track service.value){<label
+              >{{service.label}} link<input
+                type="url"
+                [formControlName]="service.value"
+                placeholder="https://…" /></label
+            >}
+          </div>
+        </fieldset>
+        <fieldset class="field-group energy-field full-span">
+          <legend>Energy curve</legend>
+          <p class="field-hint">
+            Shape the energy from start to finish. Points are spaced evenly
+            through the playlist.
+          </p>
+          <app-energy-chart [values]="form.controls.energy.getRawValue()" />
+          <div class="arc-builder" formArrayName="energy">
+            @for(control of form.controls.energy.controls;track control;let
+            i=$index){
+            <div class="arc-control">
+              <label
+                >Point {{i+1}} · {{control.value}}<input
+                  type="range"
+                  [formControlName]="i"
+                  min="1"
+                  max="5"
+                  step="1" /></label
+              ><button
+                type="button"
+                class="text-button"
+                [disabled]="form.controls.energy.length<=2"
+                (click)="removePoint(i)"
+              >
+                Remove point {{i+1}}
+              </button>
+            </div>
+            }
+          </div>
+          <button
+            type="button"
+            class="ghost-button"
+            [disabled]="form.controls.energy.length>=24"
+            (click)="addPoint()"
+          >
+            Add point
+          </button>
+        </fieldset>
+        <label class="full-span"
+          >Notes<textarea
+            formControlName="notes"
+            rows="4"
+            placeholder="Setting, pacing, transitions, facilitation notes"
+          ></textarea>
+        </label>
+      </div>
+      <fieldset class="field-group">
+        <legend>Music tags</legend>
+        <p class="field-hint">
+          Choose at least one. Include every voice type present.
+        </p>
+        @for(group of musicGroups;track group.name){
+        <fieldset class="choice-group">
+          <legend>{{group.name}}</legend>
+          <div class="pill-list">
+            @for(tag of group.tags;track tag){<button
+              type="button"
+              class="pill-button"
+              [class.active]="form.controls.qualities.value.includes(tag)"
+              [attr.aria-pressed]="form.controls.qualities.value.includes(tag)"
+              (click)="toggleTag(tag)"
+            >
+              {{tag | titlecase}}</button
+            >}
+          </div>
+        </fieldset>
+        }
+      </fieldset>
+      <fieldset class="field-group">
+        <legend>Listening notes</legend>
+        <p class="field-hint">
+          Flag specific sounds or subjects, even if they occur only once.
+          <a routerLink="/listening-guide">Read the guide</a>
+        </p>
+        @for(group of noteGroups;track group.name){
+        <fieldset class="choice-group">
+          <legend>{{group.name}}</legend>
+          <div class="pill-list">
+            @for(note of group.notes;track note.label){<button
+              type="button"
+              class="pill-button"
+              [title]="note.description"
+              [class.active]="form.controls.creatorWarningLabels.value.includes(note.label)"
+              [attr.aria-pressed]="form.controls.creatorWarningLabels.value.includes(note.label)"
+              (click)="toggleNote(note.label)"
+            >
+              {{note.label | titlecase}}</button
+            >}
+          </div>
+        </fieldset>
+        }<label class="context-field"
+          >Track or context (optional)<textarea
+            formControlName="listeningContext"
+            maxlength="1000"
+            rows="2"
+          ></textarea></label
+        ><label class="toggle-row"
+          ><input type="checkbox" formControlName="listeningReviewed" />I
+          reviewed the playlist against these listening-note categories.</label
+        >
+      </fieldset>
+      <fieldset class="field-group">
+        <legend>Tracks (optional)</legend>
+        <div formArrayName="tracks">
+          @for(track of form.controls.tracks.controls;track track;let i=$index){
+          <div class="track-editor" [formGroupName]="i">
+            <label
+              >Track {{i+1}} title<input
+                formControlName="title"
+                required /></label
+            ><label
+              >Track {{i+1}} artist<input
+                formControlName="artist"
+                required /></label
+            ><button type="button" class="text-button" (click)="removeTrack(i)">
+              Remove track {{i+1}}
+            </button>
+          </div>
+          }
+        </div>
+        <button type="button" class="ghost-button" (click)="addTrack()">
+          Add track
+        </button>
+      </fieldset>
+      <div class="modal-actions">
+        <a class="ghost-button" [routerLink]="cancelLink">Cancel</a
+        ><button class="primary-button" type="submit">
+          {{action.busy() ? 'Saving…' : id ? 'Save changes' : 'Add playlist'}}
+        </button>
+      </div>
+    </fieldset>
+    <app-action-feedback [error]="action.error()" />
+  </form>
+  }
+</div>

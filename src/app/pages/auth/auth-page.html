@@ -1,0 +1,85 @@
+<section class="auth-page">
+  <p class="eyebrow">Private beta</p>
+  <h2>{{joining() ? 'Make room for good music.' : 'Welcome back.'}}</h2>
+  <p>
+    {{joining() ? 'Join a community sharing music for thoughtful sessions.' :
+    'Sign in to revisit your library.'}}
+  </p>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <fieldset [disabled]="action.busy()">
+      <label
+        >Email<input
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          required
+      /></label>
+      <label
+        >Password<input
+          formControlName="password"
+          type="password"
+          [attr.autocomplete]="joining() ? 'new-password' : 'current-password'"
+          minlength="8"
+          required
+      /></label>
+      @if(joining()) {
+      <label
+        >Username<input
+          formControlName="username"
+          autocomplete="username"
+          required
+          pattern="[a-zA-Z0-9][a-zA-Z0-9-]{2,29}"
+        /><span class="field-hint"
+          >3–30 letters, numbers, or hyphens.</span
+        ></label
+      >
+      <label
+        >Display name (optional)<input
+          formControlName="displayName"
+          autocomplete="nickname"
+      /></label>
+      <label
+        >Practice context<input
+          formControlName="practice"
+          required
+          placeholder="Therapist, facilitator, researcher"
+      /></label>
+      <label
+        >Invite code<input
+          formControlName="inviteCode"
+          required
+          autocomplete="off"
+      /></label>
+      }
+      <button class="primary-button" type="submit">
+        {{action.busy() ? 'Please wait…' : joining() ? 'Create account' : 'Sign
+        in'}}
+      </button>
+    </fieldset>
+    <app-action-feedback [error]="action.error()" />
+  </form>
+  @if(joining()) {
+  <p>
+    Already a member?
+    <a routerLink="/login" [queryParams]="{returnUrl:destination}">Sign in</a>
+  </p>
+  } @else {
+  <p>
+    Have an invitation?
+    <a routerLink="/join" [queryParams]="{returnUrl:destination}"
+      >Join the library</a
+    >
+  </p>
+  }
+  <details class="local-demo-note">
+    <summary>About this local preview</summary>
+    <p>
+      Accounts and changes stay in this browser. Use a test password, not one
+      you use elsewhere. No emails are sent.
+    </p>
+    <p>
+      For your first account, use BETA-2026, GUIDE-2026, or BREATH-2026. Each
+      code can be used once.
+    </p>
+  </details>
+</section>

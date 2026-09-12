@@ -1,0 +1,93 @@
+<article class="listening-guide">
+  <a class="back-link" routerLink="/library">Back to library</a>
+  <header>
+    <p class="eyebrow">A shared vocabulary</p>
+    <h2>Listen with more context.</h2>
+    <p class="guide-intro">
+      Listening notes describe what is in the music so people can make choices
+      that fit their preferences and setting.
+    </p>
+  </header>
+  <section>
+    <h3>What these notes mean</h3>
+    <p>
+      These are the library’s warning tags, expressed as specific, neutral
+      observations. A note is not a rating, a prediction of someone’s reaction,
+      or a clinical safety assessment. Religious or devotional music, for
+      example, may be something a listener seeks or prefers to exclude.
+    </p>
+    <p>
+      Music tags describe the overall sound and mood. Voice tags disclose any
+      vocal content present. Listening notes identify particular sounds or
+      subjects that deserve advance context, even if they occur only once.
+    </p>
+  </section>
+  @for(group of groups;track group.name){
+  <section>
+    <h3>{{group.name}}</h3>
+    <dl class="definition-list">
+      @for(note of group.notes;track note.label){
+      <div>
+        <dt>{{note.label | titlecase}}</dt>
+        <dd>{{note.description}}</dd>
+      </div>
+      }
+    </dl>
+  </section>
+  }
+  <section>
+    <h3>How to contribute</h3>
+    <ol>
+      <li>
+        Choose a category based on something you heard. Do not infer content
+        from a title, artist, language, or genre.
+      </li>
+      <li>
+        Add a track title, timestamp, or short description when possible. For a
+        transition, name the tracks on either side.
+      </li>
+      <li>
+        Keep descriptions factual and brief. Avoid graphic quotations or claims
+        about how everyone will respond.
+      </li>
+    </ol>
+    <p>
+      For example: “Track 3, around 1:20 — percussion enters much louder than
+      the preceding passage.” Lyrics on their own belong under Sung lyrics; a
+      melancholy mood belongs under Melancholic.
+    </p>
+    <p>
+      Creators can mark the categories as reviewed. Community members can
+      contribute one note per category per account. We show the categories and
+      context, without a severity score.
+    </p>
+  </section>
+  <section>
+    <h3>Using exclusions</h3>
+    <p>
+      “Prefer to exclude…” hides playlists with any of your selected listening
+      notes. Sung lyrics and Spoken word can be excluded separately using their
+      music tags. Exclusions cannot detect content that has not been reported.
+    </p>
+    <p>
+      “No listening notes added” means no information has been submitted.
+      “Creator reviewed” records the creator’s review of these categories; it
+      does not guarantee that a playlist suits every listener. Playlist contents
+      may also change on the linked music service.
+    </p>
+  </section>
+  <section>
+    <h3>Choosing music tags</h3>
+    <p>
+      Select the sounds and moods that characterize the playlist overall. Select
+      every voice type that occurs anywhere in it. No vocals cannot be combined
+      with other voice types. Mood words are subjective descriptions, not
+      promised effects.
+    </p>
+    <p>
+      Older ambiguous labels, such as Dark/intense, remain visible as legacy
+      notes until reviewed. We do not guess which new category they mean.
+    </p>
+  </section>
+  <a class="ghost-button" routerLink="/library">Explore the library</a>
+</article>

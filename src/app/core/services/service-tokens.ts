@@ -1,11 +1,19 @@
-import { InjectionToken } from '@angular/core';
-import { AuthService } from './contracts/auth';
-import { PlaylistService } from './contracts/playlists';
-import { ProfileService } from './contracts/profiles';
-import { SocialService } from './contracts/social';
-import { InvitationService } from './contracts/invitations';
-export const AUTH_SERVICE = new InjectionToken<AuthService>('AuthService');
-export const PLAYLIST_SERVICE = new InjectionToken<PlaylistService>('PlaylistService');
-export const PROFILE_SERVICE = new InjectionToken<ProfileService>('ProfileService');
-export const SOCIAL_SERVICE = new InjectionToken<SocialService>('SocialService');
-export const INVITATION_SERVICE = new InjectionToken<InvitationService>('InvitationService');
+import { InjectionToken } from "@angular/core";
+import { AuthService } from "./contracts/auth";
+import { PlaylistService } from "./contracts/playlists";
+import { ProfileService } from "./contracts/profiles";
+import { SocialService } from "./contracts/social";
+import { InvitationService } from "./contracts/invitations";
+export const AUTH_SERVICE = new InjectionToken<AuthService>("AuthService");
+export const PLAYLIST_SERVICE = new InjectionToken<PlaylistService>(
+  "PlaylistService",
+);
+export const PROFILE_SERVICE = new InjectionToken<ProfileService>(
+  "ProfileService",
+);
+export const SOCIAL_SERVICE = new InjectionToken<SocialService>(
+  "SocialService",
+);
+export const INVITATION_SERVICE = new InjectionToken<InvitationService>(
+  "InvitationService",
+);

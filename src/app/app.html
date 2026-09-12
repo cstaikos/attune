@@ -1,17 +1,83 @@
 <div class="app-shell">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="topbar">
-    <a class="brand-block" routerLink="/library" aria-label="Resonance library home">
-      <div class="brand-mark" aria-hidden="true">∿</div>
-      <div><h1>Resonance</h1><p>Session music library</p></div>
-    </a>
-    <div class="account-bar"><a class="ghost-button" routerLink="/login">Sign in</a></div>
+    <a
+      class="brand-block"
+      routerLink="/library"
+      aria-label="Resonance library home"
+      ><div class="brand-mark" aria-hidden="true">∿</div>
+      <div>
+        <h1>Resonance</h1>
+        <p>Session music library</p>
+      </div></a
+    >
+    @if(member.session()) {
+    <form class="topbar-search" (ngSubmit)="searchLibrary()">
+      <label class="sr-only" for="global-search">Search playlists</label
+      ><input
+        id="global-search"
+        type="search"
+        name="search"
+        [(ngModel)]="search"
+        placeholder="Search the library"
+      /><button class="sr-only" type="submit">Search</button>
+    </form>
+    }
+    <div class="account-bar">
+      @if(member.session();as session){<a
+        class="mini-profile"
+        [routerLink]="['/profile',session.userId]"
+        ><div class="avatar">{{member.profile.data()?.initials || 'Me'}}</div>
+        <div>
+          <strong
+            >{{member.profile.data()?.displayName ||
+            member.profile.data()?.username || 'My profile'}}</strong
+          ><span>{{member.profile.data()?.username}}</span>
+        </div></a
+      ><button
+        class="ghost-button small-button"
+        [disabled]="action.busy()"
+        (click)="signOut()"
+      >
+        Sign out</button
+      >}@else{<a class="ghost-button" routerLink="/login">Sign in</a
+      ><a class="primary-button" routerLink="/join">Join</a>}
+    </div>
   </header>
+  @if(member.session()){
   <nav class="library-nav" aria-label="Library sections">
-    <a routerLink="/library" routerLinkActive="active" ariaCurrentWhenActive="page">Library</a>
-    <a routerLink="/saved" routerLinkActive="active" ariaCurrentWhenActive="page">Saved</a>
-    <a routerLink="/contributions" routerLinkActive="active" ariaCurrentWhenActive="page">My contributions</a>
+    <a
+      routerLink="/library"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      >Library</a
+    ><a
+      routerLink="/saved"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      >Saved</a
+    ><a
+      routerLink="/contributions"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      >My contributions</a
+    ><a
+      routerLink="/profiles"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      >Community</a
+    >
   </nav>
-  <main class="view-root" id="main-content" tabindex="-1"><router-outlet /></main>
-  <footer class="site-footer"><a routerLink="/listening-guide">About tags &amp; listening notes</a></footer>
+  }
+  <div class="shell-feedback">
+    <app-action-feedback [error]="action.error()" />
+  </div>
+  <main class="view-root" id="main-content" tabindex="-1">
+    <router-outlet />
+  </main>
+  <footer class="site-footer">
+    <a routerLink="/listening-guide">About tags &amp; listening notes</a>
+  </footer>
 </div>
+
+<app-leave-dialog />

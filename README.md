@@ -2,6 +2,11 @@
 
 An incremental Angular port of the session music library prototype.
 
+## Project resources
+
+- [Shared beta and moderation plan](docs/beta-plan.md): implementation sequence,
+  admin panel, member reporting, and beta readiness criteria.
+
 ## Run the Angular beta
 
 Use Node 24.15 or newer in the Node 24 release line and pnpm 11.

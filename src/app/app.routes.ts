@@ -8,18 +8,12 @@ const editor = () =>
   import("./pages/editor/editor-page").then((m) => m.EditorPage);
 export const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "library" },
-  { path: "login", title: "Sign in · Resonance", loadComponent: auth },
+  { path: "login", title: "Sign in · Attune", loadComponent: auth },
   {
     path: "join",
-    title: "Join · Resonance",
+    title: "Join · Attune",
     loadComponent: auth,
     data: { joining: true },
-  },
-  {
-    path: "listening-guide",
-    title: "Listening notes guide · Resonance",
-    loadComponent: () =>
-      import("./pages/guide/guide-page").then((m) => m.GuidePage),
   },
   {
     path: "",
@@ -27,18 +21,18 @@ export const routes: Routes = [
     children: [
       {
         path: "library",
-        title: "Library · Resonance",
+        title: "Library · Attune",
         loadComponent: library,
         data: {
           view: "library",
-          heading: "Music to hold the space.",
+          heading: "Library",
           description:
             "Explore playlists shared by therapists and facilitators.",
         },
       },
       {
         path: "saved",
-        title: "Saved · Resonance",
+        title: "Saved · Attune",
         loadComponent: library,
         data: {
           view: "saved",
@@ -48,7 +42,7 @@ export const routes: Routes = [
       },
       {
         path: "contributions",
-        title: "My contributions · Resonance",
+        title: "My contributions · Attune",
         loadComponent: library,
         data: {
           view: "contributions",
@@ -58,31 +52,31 @@ export const routes: Routes = [
       },
       {
         path: "create",
-        title: "Add a playlist · Resonance",
+        title: "Add a playlist · Attune",
         loadComponent: editor,
         canDeactivate: [editorLeaveGuard],
       },
       {
         path: "edit/:id",
-        title: "Edit playlist · Resonance",
+        title: "Edit playlist · Attune",
         loadComponent: editor,
         canDeactivate: [editorLeaveGuard],
       },
       {
         path: "playlist/:id",
-        title: "Playlist · Resonance",
+        title: "Playlist · Attune",
         loadComponent: () =>
           import("./pages/playlist/playlist-page").then((m) => m.PlaylistPage),
       },
       {
         path: "profiles",
-        title: "Community · Resonance",
+        title: "Community · Attune",
         loadComponent: () =>
           import("./pages/profiles/profiles-page").then((m) => m.ProfilesPage),
       },
       {
         path: "profile/:id",
-        title: "Profile · Resonance",
+        title: "Profile · Attune",
         loadComponent: () =>
           import("./pages/profiles/profile-page").then((m) => m.ProfilePage),
       },
@@ -90,7 +84,7 @@ export const routes: Routes = [
   },
   {
     path: "**",
-    title: "Page not found · Resonance",
+    title: "Page not found · Attune",
     loadComponent: () =>
       import("./pages/route-placeholder").then((m) => m.RoutePlaceholder),
     data: { heading: "Page not found", notFound: true },

@@ -3,17 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Resonance Library</title>
+    <title>Attune</title>
+    <link rel="icon" type="image/svg+xml" href="assets/brand/attune-mark.svg" />
+    <meta name="theme-color" content="#263A30" />
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand-block" href="#library" aria-label="Resonance library home">
-          <div class="brand-mark" aria-hidden="true">∿</div>
+        <a class="brand-block" href="#library" aria-label="Attune library home">
+          <img class="brand-mark" src="assets/brand/attune-mark.svg" width="48" height="48" alt="" aria-hidden="true" />
           <div>
-            <h1>Resonance</h1>
-            <p>Session music library</p>
+            <h1>attune</h1>
           </div>
         </a>
 
@@ -81,13 +82,6 @@
           <div class="form-pills" id="qualityChoices"></div>
         </fieldset>
 
-        <fieldset class="field-group">
-          <legend>Listening notes</legend>
-          <p class="field-hint">Flag specific sounds or subjects, even if they occur only once. <a href="#listening-guide">Read the listening notes guide</a></p>
-          <div class="form-pills" id="warningChoices"></div>
-          <label class="context-field">Track or context (optional)<textarea name="listeningContext" maxlength="1000" rows="2" placeholder="Name the note, track, and timestamp when helpful."></textarea></label>
-          <label class="toggle-row"><input type="checkbox" name="listeningReviewed"><span>I reviewed the playlist against these listening-note categories.</span></label>
-        </fieldset>
 
         <p class="form-error" id="playlistError" role="alert"></p>
         <div class="modal-actions">
@@ -96,7 +90,7 @@
         </div>
       </form>
     </main>
-      <footer class="site-footer"><a href="#listening-guide">About tags &amp; listening notes</a></footer>
+      <footer class="site-footer"></footer>
     </div>
 
     <dialog class="modal" id="accountDialog">

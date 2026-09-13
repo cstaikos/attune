@@ -1,4 +1,4 @@
-# Resonance Library
+# Attune
 
 An incremental Angular port of the session music library prototype.
 
@@ -27,7 +27,7 @@ rewrite application routes to index.html so direct links and refreshes work.
 - Standalone Angular application, strict TypeScript, and zoneless change detection.
 - Shared header, navigation, footer, and the existing design stylesheet.
 - Routes for library, saved playlists, contributions, playlist details and editing,
-  profiles, sign-in, joining, and the listening guide, plus a not-found page.
+  profiles, sign-in, and joining, plus a not-found page.
 - Provider-independent domain models and the prototype's current tag taxonomy.
 
 The screens are now connected to mock services, with member-only routes and local

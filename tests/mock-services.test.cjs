@@ -98,7 +98,7 @@ test('queries combine duration, service, tags, exclusions, search, and personal 
 test('invalid playlist inputs fail without changes and returned data is detached', async () => {
  const app = setup(); await join(app);
  const before = app.storage.value;
- for (const patch of [{links:{spotify:'https://open.spotify.com/'}},{duration:'0m'},{qualities:['no vocals','sung lyrics']},{energyCurve:[9]}])
+ for (const patch of [{links:{url0:'javascript:alert(1)'}},{duration:'0m'},{qualities:['no vocals','sung lyrics']},{energyCurve:[9]}])
   await assert.rejects(app.playlists.create(draft(patch)),code('invalid-input'));
  assert.equal(app.storage.value,before);
  const list = await app.playlists.list(); list[0].title = 'Outside mutation';
@@ -150,4 +150,31 @@ test('login return destinations reject external locations and auth loops', () =>
  const { safeReturnUrl } = require('../.angular/mock-tests/utils/return-url');
  for(const value of [null,'https://example.com','//example.com','/\\example.com','/login','/join?returnUrl=/saved']) assert.equal(safeReturnUrl(value),'/library');
  assert.equal(safeReturnUrl('/playlist/123?from=saved'),'/playlist/123?from=saved');
+});
+
+
+test('generic URLs detect providers and multiple links survive editing and reload', async () => {
+ const { parsePlaylistLink } = require('../.angular/mock-tests/utils/playlist-link');
+ for (const [url, provider] of [['https://open.spotify.com/playlist/abc','spotify'],['https://music.apple.com/us/playlist/example/pl.123','apple'],['https://youtu.be/example','youtube'],['https://example.com/','other'],['https://open.spotify.com.example.com/','other']]) {
+  assert.equal(parsePlaylistLink(url).key, provider);
+ }
+ for (const url of ['javascript:alert(1)', 'data:text/html,test', 'https://user:pass@example.com/', 'invalid']) assert.equal(parsePlaylistLink(url), null);
+ const app = setup(); await join(app);
+ const links = {url0:'https://example.com/',url1:'https://example.org/music',url2:'https://open.spotify.com/playlist/abc',url3:'https://open.spotify.com/playlist/def'};
+ const playlist = await app.playlists.create(draft({links}));
+ await app.playlists.update(playlist.id,draft({links,title:'Updated'}));
+ assert.deepEqual((await setup(app.storage).playlists.get(playlist.id)).links,links);
+});
+
+test('comments retain their text through reload and edits without warning markers', async () => {
+ const app = setup(); await join(app);
+ const playlist = await app.playlists.create(draft());
+ await app.playlists.addComment(playlist.id,'Sudden loud sounds in tracks 2 and 5.');
+ await app.playlists.addComment(playlist.id,'Thanks for sharing.');
+ await app.playlists.update(playlist.id,draft({title:'Updated'}));
+ const comments = (await setup(app.storage).playlists.get(playlist.id)).comments;
+ assert.equal(comments[0].warning,undefined);
+ assert.equal(comments[0].body,'Sudden loud sounds in tracks 2 and 5.');
+ assert.equal(comments[1].warning,undefined);
+ await assert.rejects(app.playlists.addComment(playlist.id,' '),code('invalid-input'));
 });

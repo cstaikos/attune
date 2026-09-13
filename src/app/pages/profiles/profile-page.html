@@ -9,7 +9,6 @@
 @if(page.data();as data){
 <article class="profile-page">
   <div class="profile-hero">
-    <a class="back-link" routerLink="/profiles">Back to profiles</a>
     <div class="profile-heading-row">
       <div class="profile-identity">
         <div class="avatar profile-avatar">{{data.profile.initials}}</div>
@@ -28,19 +27,11 @@
         (click)="edit()"
       >
         Edit profile</button
-      >}@else{<button
-        class="ghost-button"
-        [disabled]="action.busy()"
-        [attr.aria-pressed]="data.followed.includes(data.profile.id)"
-        (click)="follow()"
-      >
-        {{data.followed.includes(data.profile.id) ? 'Following' : 'Follow'}}</button
       >}
     </div>
     <p class="profile-bio">{{data.profile.bio || 'No bio yet.'}}</p>
     <div class="profile-stats">
-      <span>{{data.playlists.length}} playlists</span
-      ><span>{{data.profile.followerCount}} followers</span>
+      <span>{{data.playlists.length}} playlists</span>
     </div>
     @if(editing()){
     <form class="profile-edit" [formGroup]="form" (ngSubmit)="update()">

@@ -40,27 +40,42 @@
             /></label>
           </div>
         </fieldset>
-        <label
+        <label class="modality-field"
           >Modality<select formControlName="modality">
             @for(m of modalities;track m){
             <option [value]="m">{{m}}</option>
             }
           </select></label
         >
-        <fieldset class="field-group full-span" formGroupName="links">
+        <fieldset class="field-group full-span" formArrayName="links">
           <legend>Playlist links</legend>
           <p class="field-hint">
-            Add at least one direct playlist URL. Playback opens in the music
-            service.
+            Add any URL. Spotify, Apple Music, and YouTube links are recognized
+            automatically.
           </p>
-          <div class="form-grid two-column">
-            @for(service of services;track service.value){<label
-              >{{service.label}} link<input
+          @for(control of form.controls.links.controls;track control;let
+          i=$index){
+          <div class="link-editor">
+            <label
+              >URL {{i+1}}<input
                 type="url"
-                [formControlName]="service.value"
-                placeholder="https://…" /></label
-            >}
+                [formControlName]="i"
+                placeholder="https://…"
+            /></label>
+            <span class="field-hint">{{linkLabel(control.value)}}</span>
+            <button
+              type="button"
+              class="text-button"
+              (click)="removeLink(i)"
+              [disabled]="form.controls.links.length<=1"
+            >
+              Remove
+            </button>
           </div>
+          }
+          <button type="button" class="ghost-button" (click)="addLink()">
+            Add another URL
+          </button>
         </fieldset>
         <fieldset class="field-group energy-field full-span">
           <legend>Energy curve</legend>
@@ -129,62 +144,6 @@
           </div>
         </fieldset>
         }
-      </fieldset>
-      <fieldset class="field-group">
-        <legend>Listening notes</legend>
-        <p class="field-hint">
-          Flag specific sounds or subjects, even if they occur only once.
-          <a routerLink="/listening-guide">Read the guide</a>
-        </p>
-        @for(group of noteGroups;track group.name){
-        <fieldset class="choice-group">
-          <legend>{{group.name}}</legend>
-          <div class="pill-list">
-            @for(note of group.notes;track note.label){<button
-              type="button"
-              class="pill-button"
-              [title]="note.description"
-              [class.active]="form.controls.creatorWarningLabels.value.includes(note.label)"
-              [attr.aria-pressed]="form.controls.creatorWarningLabels.value.includes(note.label)"
-              (click)="toggleNote(note.label)"
-            >
-              {{note.label | titlecase}}</button
-            >}
-          </div>
-        </fieldset>
-        }<label class="context-field"
-          >Track or context (optional)<textarea
-            formControlName="listeningContext"
-            maxlength="1000"
-            rows="2"
-          ></textarea></label
-        ><label class="toggle-row"
-          ><input type="checkbox" formControlName="listeningReviewed" />I
-          reviewed the playlist against these listening-note categories.</label
-        >
-      </fieldset>
-      <fieldset class="field-group">
-        <legend>Tracks (optional)</legend>
-        <div formArrayName="tracks">
-          @for(track of form.controls.tracks.controls;track track;let i=$index){
-          <div class="track-editor" [formGroupName]="i">
-            <label
-              >Track {{i+1}} title<input
-                formControlName="title"
-                required /></label
-            ><label
-              >Track {{i+1}} artist<input
-                formControlName="artist"
-                required /></label
-            ><button type="button" class="text-button" (click)="removeTrack(i)">
-              Remove track {{i+1}}
-            </button>
-          </div>
-          }
-        </div>
-        <button type="button" class="ghost-button" (click)="addTrack()">
-          Add track
-        </button>
       </fieldset>
       <div class="modal-actions">
         <a class="ghost-button" [routerLink]="cancelLink">Cancel</a

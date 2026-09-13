@@ -28,6 +28,7 @@ export interface PlaylistComment {
   id: string;
   userId: UserId;
   body: string;
+  warning?: boolean;
   createdAt?: string;
 }
 
@@ -60,7 +61,7 @@ export interface Playlist {
   coverA: string;
   coverB: string;
   notes: string;
-  links: Partial<Record<MusicService, string>>;
+  links: Record<string, string>;
   tracks: Track[];
   comments: PlaylistComment[];
 }

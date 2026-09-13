@@ -1,12 +1,4 @@
 <div class="library-layout">
-  <header class="library-intro">
-    <div>
-      <p class="eyebrow">The library</p>
-      <h2>{{routeData()['heading']}}</h2>
-      <p>{{routeData()['description']}}</p>
-    </div>
-    <a class="primary-button" routerLink="/create">+ Add a playlist</a>
-  </header>
   <div class="column-toolbar">
     <div>
       <button
@@ -22,13 +14,13 @@
       ><button class="text-button" (click)="clear()">Clear filters</button>
     </div>
     <div class="toolbar-actions">
+      <a class="primary-button" routerLink="/create">+ Add a playlist</a>
       <label class="sr-only" for="sort">Sort playlists</label
       ><select
         id="sort"
         [ngModel]="query().sort"
         (ngModelChange)="setSort($event)"
       >
-        <option value="recommended">Recommended</option>
         <option value="newest">Newest</option>
         <option value="favorites">Most saved</option>
         <option value="comments">Most discussed</option>

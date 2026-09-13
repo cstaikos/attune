@@ -91,15 +91,12 @@ button {
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  border: 2px solid var(--ink);
-  border-radius: 14px;
-  background: #e9eddf;
-  font-weight: 600;
+  object-fit: contain;
 }
 
 .brand-block h1,
@@ -1138,9 +1135,9 @@ select {
 body { line-height: 1.5; }
 :focus-visible { outline: 2px solid var(--teal-dark); outline-offset: 4px; }
 .topbar { position: relative; max-width: 1440px; width: 100%; margin: 0 auto; padding: 24px 48px; min-height: 96px; background: transparent; grid-template-columns: 1fr minmax(220px, 340px) 1fr; border-bottom-color: var(--line); }
-.brand-mark { border: 0; border-radius: 50%; background: #e7ebdf; color: var(--teal-dark); font-family: Georgia, serif; font-size: 40px; font-weight: 400; }
-.brand-block h1 { font-family: Georgia, serif; font-size: 1.65rem; font-weight: 400; letter-spacing: -.04em; }
-.brand-block p { font-size: .75rem; }
+.brand-mark { display: block; }
+.brand-block h1 { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #263a30; font-size: 2.15rem; line-height: 1.1; font-weight: 700; letter-spacing: -.065em; }
+.brand-block p { margin-top: 4px; font-size: .68rem; }
 .topbar-search input { background: #eeeee6; border: 1px solid transparent; border-radius: 30px; padding: 12px 20px; }
 .account-bar { min-width: 0; }
 .account-bar .ghost-button { background: transparent; border-color: transparent; font-size: .8rem; }
@@ -1230,12 +1227,12 @@ body { line-height: 1.5; }
 }
 @media (max-width: 720px) {
   .topbar { padding: 18px 20px; gap: 16px; }
-  .brand-block h1 { font-size: 1.4rem; }
+  .brand-block h1 { font-size: 1.85rem; }
   .brand-block p { display: none; }
   .account-bar { justify-content: flex-end; gap: 4px; }
   .account-bar .ghost-button { padding: 6px; font-size: .75rem; }
   .account-bar .mini-profile > div:last-child { display: none; }
-  .brand-mark { width: 32px; height: 32px; font-size: 32px; }
+  .brand-mark { width: 38px; height: 38px; }
   .library-layout { padding: 0 20px 40px; }
   .library-intro { align-items: flex-start; flex-direction: column; padding: 30px 0; gap: 22px; }
   .column-toolbar { gap: 16px; }
@@ -1320,3 +1317,30 @@ body { line-height: 1.5; }
 .duration-filter-range label { display: grid; gap: 8px; font-size: .875rem; }
 .duration-filter-range input { min-width: 0; width: 100%; }
 .voice-exclusions { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+
+/* Modality has its own place in the hierarchy, separate from music tags. */
+.playlist-modality {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  margin: 0 0 16px;
+  padding-left: 12px;
+  border-left: 3px solid #ad6044;
+}
+.playlist-modality > span {
+  color: var(--muted);
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.playlist-modality > strong {
+  color: var(--teal-dark);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.detail-hero-body > .playlist-modality { margin: 20px 0; }
+.detail-hero-body > .playlist-modality > strong { font-size: 1.3rem; }
+.playlist-list .playlist-modality { margin-bottom: 12px; }

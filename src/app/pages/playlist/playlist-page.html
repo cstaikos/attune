@@ -17,7 +17,9 @@
     ></div>
     <div class="detail-hero-body">
       <a class="back-link" routerLink="/library">Back to library</a>
-      <p class="eyebrow">{{data.playlist.modality}}</p>
+      <div class="playlist-modality">
+        <span>Modality</span><strong>{{data.playlist.modality}}</strong>
+      </div>
       <div class="detail-title-row">
         <div>
           <h2>{{data.playlist.title}}</h2>
@@ -39,15 +41,14 @@
       </div>
       <div class="playlist-primary-actions">
         @for(link of links();track link.href){<a
-          class="primary-button"
+          class="primary-button service-link"
+          [attr.data-service]="link.key"
           [href]="link.href"
           target="_blank"
           rel="noopener noreferrer"
           >Open in {{link.label}} ↗</a
         >}@empty{
-        <p class="field-hint">
-          No playable link yet. This entry needs a direct playlist URL.
-        </p>
+        <p class="field-hint">No link added yet.</p>
         } @if(data.playlist.creatorId===member.session()?.userId){<a
           class="ghost-button"
           [routerLink]="['/edit',data.playlist.id]"
@@ -67,7 +68,7 @@
         aria-labelledby="delete-heading"
       >
         <h3 id="delete-heading">Delete {{data.playlist.title}}?</h3>
-        <p>This removes its comments, listening notes, and saves.</p>
+        <p>This removes its comments and saves.</p>
         <button
           class="ghost-button"
           [disabled]="action.busy()"
@@ -94,19 +95,10 @@
             <strong>{{name(data.playlist.creatorId)}}</strong
             ><span>{{creator(data.playlist.creatorId)?.username}}</span>
           </div></a
-        >@if(data.playlist.creatorId!==member.session()?.userId){<button
-          class="ghost-button"
-          [disabled]="action.busy()"
-          [attr.aria-pressed]="data.followed.includes(data.playlist.creatorId)"
-          (click)="follow()"
         >
-          {{data.followed.includes(data.playlist.creatorId) ? 'Following' :
-          'Follow'}}</button
-        >}
       </div>
       <div class="tag-row">
-        <span class="tag modality">{{data.playlist.modality}}</span>@for(tag of
-        data.playlist.qualities;track tag){<span class="tag"
+        @for(tag of data.playlist.qualities;track tag){<span class="tag"
           >{{tag | titlecase}}</span
         >}
       </div>
@@ -121,77 +113,6 @@
       <section class="detail-section">
         <h3>Notes</h3>
         <p class="notes">{{data.playlist.notes || 'No notes added yet.'}}</p>
-      </section>
-      <section class="detail-section">
-        <h3>Listening notes</h3>
-        <p class="field-hint">
-          Specific observations to help you choose.
-          <a routerLink="/listening-guide">How to use listening notes</a>
-        </p>
-        <div class="warning-list">
-          @for(label of warnings();track label){<span class="tag listening-note"
-            >{{label | titlecase}}</span
-          >}@for(label of legacyWarnings();track label){<span
-            class="tag listening-note"
-            >{{label | titlecase}} · legacy note</span
-          >}
-        </div>
-        @if(!warnings().length && !legacyWarnings().length){
-        <p class="field-hint">
-          {{data.playlist.listeningReviewed ? 'Creator reviewed the
-          listening-note categories and marked none.' : 'No listening notes
-          added yet. This playlist has not been marked as reviewed.'}}
-        </p>
-        } @else if(data.playlist.listeningReviewed){
-        <p class="field-hint">
-          Creator marked the listening-note categories as reviewed.
-        </p>
-        } @if(data.playlist.listeningContext){
-        <p class="listening-context">{{data.playlist.listeningContext}}</p>
-        } @if(data.playlist.legacyQualities?.length){
-        <p class="field-hint">
-          Earlier music tags: {{data.playlist.legacyQualities.join(', ')}}.
-          Retained for context; not assigned to new categories.
-        </p>
-        } @for(note of data.playlist.listeningReports;track
-        $index){@if(note.context){
-        <p class="listening-context">
-          <strong>{{note.label | titlecase}}</strong> · {{name(note.userId)}}<br />{{note.context}}
-        </p>
-        }} @if(available().length){
-        <form class="listening-form" (ngSubmit)="addReport()">
-          <label
-            >Add a listening note<select
-              name="report"
-              [(ngModel)]="report"
-              required
-              [disabled]="action.busy()"
-            >
-              <option value="" disabled>Choose a category</option>
-              @for(label of available();track label){
-              <option [value]="label">{{label | titlecase}}</option>
-              }
-            </select></label
-          ><label
-            >Track or context (optional)<textarea
-              name="context"
-              [(ngModel)]="context"
-              maxlength="1000"
-              rows="2"
-              [disabled]="action.busy()"
-            ></textarea></label
-          ><button class="primary-button" [disabled]="action.busy() || !report">
-            Add listening note
-          </button>
-          <p class="field-hint">
-            Each account can add each category once per playlist.
-          </p>
-          @if(feedbackAt()==='report'){<app-action-feedback
-            [error]="action.error()"
-            [message]="action.message()"
-          />}
-        </form>
-        }
       </section>
       <section class="detail-section comments-section">
         <h3>Comments</h3>
@@ -215,7 +136,7 @@
             [(ngModel)]="comment"
             required
             maxlength="5000"
-            placeholder="Context, listening notes, adaptations"
+            placeholder="Share context, thoughts, or adaptations"
             [disabled]="action.busy()"
           ></textarea
           ><button
@@ -230,22 +151,6 @@
         </form>
       </section>
     </div>
-    <aside class="detail-sidebar">
-      <section class="detail-section">
-        <h3>Tracks</h3>
-        @if(data.playlist.tracks.length){
-        <ol class="track-list">
-          @for(track of data.playlist.tracks;track $index){
-          <li><strong>{{track.title}}</strong><span>{{track.artist}}</span></li>
-          }
-        </ol>
-        }@else{
-        <p class="field-hint">
-          Open the playlist in its music service to see the tracks.
-        </p>
-        }
-      </section>
-    </aside>
   </div>
 </article>
 }

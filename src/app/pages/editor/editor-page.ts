@@ -5,19 +5,11 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { TitleCasePipe } from "@angular/common";
 import { PLAYLIST_SERVICE } from "../../core/services/service-tokens";
 import { MemberSession } from "../../core/auth/member-session";
-import { EnergyLevel, MusicService, Playlist } from "../../core/models/library";
-import {
-  Modality,
-  MusicTag,
-  ListeningNoteLabel,
-} from "../../core/models/taxonomy";
-import {
-  modalities,
-  musicGroups,
-  noteGroups,
-  services,
-} from "../../core/data/ui-options";
+import { EnergyLevel, Playlist } from "../../core/models/library";
+import { Modality, MusicTag } from "../../core/models/taxonomy";
+import { modalities, musicGroups } from "../../core/data/ui-options";
 import { PlaylistDraft } from "../../core/services/contracts/playlists";
+import { parsePlaylistLink } from "../../core/utils/playlist-link";
 import { durationMinutes } from "../../core/utils/playlist-draft";
 import { ServiceError } from "../../core/services/service-error";
 import { PageLoad } from "../../shared/state/page-load";
@@ -50,8 +42,6 @@ export class EditorPage {
   readonly action = new ActionState();
   readonly modalities = modalities;
   readonly musicGroups = musicGroups;
-  readonly noteGroups = noteGroups;
-  readonly services = services;
   readonly form = this.fb.group({
     title: ["", Validators.required],
     modality: this.fb.control<Modality>("Meditation"),
@@ -59,17 +49,8 @@ export class EditorPage {
     minutes: [0, [Validators.required, Validators.min(0), Validators.max(59)]],
     notes: [""],
     qualities: this.fb.control<MusicTag[]>([]),
-    creatorWarningLabels: this.fb.control<ListeningNoteLabel[]>([]),
-    listeningReviewed: [false],
-    listeningContext: ["", Validators.maxLength(1000)],
-    links: this.fb.group({
-      spotify: [""],
-      youtube: [""],
-      apple: [""],
-      other: [""],
-    }),
+    links: this.fb.array([this.fb.control("")]),
     energy: this.fb.array([1, 2, 3, 4, 3, 2].map((n) => this.fb.control(n))),
-    tracks: this.fb.array<ReturnType<EditorPage["trackControl"]>>([]),
   });
   constructor() {
     effect(() => {
@@ -81,12 +62,6 @@ export class EditorPage {
   }
   get cancelLink() {
     return this.id ? ["/playlist", this.id] : ["/contributions"];
-  }
-  private trackControl(title = "", artist = "") {
-    return this.fb.group({
-      title: [title, Validators.required],
-      artist: [artist, Validators.required],
-    });
   }
   async load(id = this.id) {
     await this.page.run(async () => {
@@ -105,33 +80,15 @@ export class EditorPage {
         minutes: total % 60,
         notes: p?.notes || "",
         qualities: p?.qualities || [],
-        creatorWarningLabels: p
-          ? [
-              ...new Set([
-                ...p.creatorWarningLabels,
-                ...p.listeningReports
-                  .filter((report) => report.userId === p.creatorId)
-                  .map((report) => report.label),
-              ]),
-            ]
-          : [],
-        listeningReviewed: p?.listeningReviewed || false,
-        listeningContext: p?.listeningContext || "",
-        links: {
-          spotify: p?.links.spotify || "",
-          youtube: p?.links.youtube || "",
-          apple: p?.links.apple || "",
-          other: p?.links.other || "",
-        },
       });
+      this.form.controls.links.clear();
+      for (const url of Object.values(p?.links || {}).length
+        ? Object.values(p!.links)
+        : [""])
+        this.form.controls.links.push(this.fb.control(url));
       this.form.controls.energy.clear();
       for (const n of p?.energyCurve || [1, 2, 3, 4, 3, 2])
         this.form.controls.energy.push(this.fb.control(n));
-      this.form.controls.tracks.clear();
-      for (const track of p?.tracks || [])
-        this.form.controls.tracks.push(
-          this.trackControl(track.title, track.artist),
-        );
       this.form.markAsPristine();
       return p;
     });
@@ -154,14 +111,18 @@ export class EditorPage {
     control.setValue(tags);
     control.markAsDirty();
   }
-  toggleNote(note: ListeningNoteLabel) {
-    const control = this.form.controls.creatorWarningLabels;
-    control.setValue(
-      control.value.includes(note)
-        ? control.value.filter((n) => n !== note)
-        : [...control.value, note],
-    );
-    control.markAsDirty();
+  linkLabel(url: string) {
+    return parsePlaylistLink(url)?.label || "";
+  }
+  addLink() {
+    this.form.controls.links.push(this.fb.control(""));
+    this.form.markAsDirty();
+  }
+  removeLink(index: number) {
+    if (this.form.controls.links.length > 1) {
+      this.form.controls.links.removeAt(index);
+      this.form.markAsDirty();
+    }
   }
   addPoint() {
     if (this.form.controls.energy.length < 24) {
@@ -175,19 +136,11 @@ export class EditorPage {
       this.form.markAsDirty();
     }
   }
-  addTrack() {
-    this.form.controls.tracks.push(this.trackControl());
-    this.form.markAsDirty();
-  }
-  removeTrack(index: number) {
-    this.form.controls.tracks.removeAt(index);
-    this.form.markAsDirty();
-  }
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
       this.action.error.set(
-        "Complete the required fields and check the duration and tracks.",
+        "Complete the required fields and check the duration.",
       );
       return;
     }
@@ -205,13 +158,15 @@ export class EditorPage {
         energyCurve: v.energy as EnergyLevel[],
         notes: v.notes,
         qualities: v.qualities,
-        creatorWarningLabels: v.creatorWarningLabels,
-        listeningReviewed: v.listeningReviewed,
-        listeningContext: v.listeningContext,
+        creatorWarningLabels: this.page.data()?.creatorWarningLabels || [],
+        listeningReviewed: this.page.data()?.listeningReviewed || false,
+        listeningContext: this.page.data()?.listeningContext || "",
         links: Object.fromEntries(
-          Object.entries(v.links).filter(([, value]) => value.trim()),
-        ) as Partial<Record<MusicService, string>>,
-        tracks: v.tracks,
+          v.links
+            .filter((value) => value.trim())
+            .map((value, index) => [`url${index}`, value.trim()]),
+        ),
+        tracks: this.page.data()?.tracks || [],
       };
       const playlist = this.id
         ? await this.playlists.update(this.id, draft)

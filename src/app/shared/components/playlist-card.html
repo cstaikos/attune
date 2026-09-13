@@ -8,6 +8,9 @@
   ></a>
   <div class="card-body">
     <div class="card-identity">
+      <div class="playlist-modality">
+        <span>Modality</span><strong>{{playlist().modality}}</strong>
+      </div>
       <div class="card-title-row">
         <div>
           <h3>
@@ -38,11 +41,8 @@
       <app-energy-chart [values]="playlist().energyCurve" [mini]="true" />
     </div>
     <div class="tag-row">
-      <span class="tag modality">{{playlist().modality}}</span>@for (tag of
-      playlist().qualities.slice(0,3); track tag) {
-      <span class="tag">{{tag | titlecase}}</span> }@for (label of
-      warningLabels(); track label) {
-      <span class="tag listening-note">{{label | titlecase}}</span> }
+      @for (tag of playlist().qualities.slice(0,3); track tag) {
+      <span class="tag">{{tag | titlecase}}</span> }
     </div>
     <div class="card-actions">
       <div class="card-stats">

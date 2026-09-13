@@ -4,11 +4,17 @@
     <a
       class="brand-block"
       routerLink="/library"
-      aria-label="Resonance library home"
-      ><div class="brand-mark" aria-hidden="true">∿</div>
+      aria-label="Attune library home"
+      ><img
+        class="brand-mark"
+        src="assets/brand/attune-mark.svg"
+        width="48"
+        height="48"
+        alt=""
+        aria-hidden="true"
+      />
       <div>
-        <h1>Resonance</h1>
-        <p>Session music library</p>
+        <h1>attune</h1>
       </div></a
     >
     @if(member.session()) {
@@ -75,9 +81,7 @@
   <main class="view-root" id="main-content" tabindex="-1">
     <router-outlet />
   </main>
-  <footer class="site-footer">
-    <a routerLink="/listening-guide">About tags &amp; listening notes</a>
-  </footer>
+  <footer class="site-footer"></footer>
 </div>
 
 <app-leave-dialog />

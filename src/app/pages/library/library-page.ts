@@ -39,7 +39,7 @@ export class LibraryPage {
   private readonly params = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
   });
-  readonly query = signal<PlaylistQuery>({ sort: "recommended" });
+  readonly query = signal<PlaylistQuery>({ sort: "newest" });
   readonly filtersOpen = signal(false);
   readonly layout = signal<"cards" | "list">("cards");
   readonly page = new PageLoad<{
@@ -79,7 +79,7 @@ export class LibraryPage {
     return this.page.data()?.profiles.find((p) => p.id === id);
   }
   clear() {
-    this.query.set({ sort: "recommended" });
+    this.query.set({ sort: "newest" });
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { q: null },

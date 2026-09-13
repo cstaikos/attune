@@ -31,7 +31,7 @@ export interface PlaylistQuery {
   maxDuration?: number;
   view?: "library" | "saved" | "contributions";
   creatorId?: string;
-  sort?: "recommended" | "newest" | "favorites" | "comments";
+  sort?: "newest" | "favorites" | "comments";
 }
 export interface PlaylistService {
   list(query?: PlaylistQuery): Promise<Playlist[]>;

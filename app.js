@@ -311,7 +311,7 @@ let filters = {
   services: [],
   minDuration: "",
   maxDuration: "",
-  sort: "recommended"
+  sort: "newest"
 };
 
 const elements = {
@@ -358,7 +358,7 @@ function initializeCreateForm() {
   `).join("");
   renderArcBuilder(defaultCreateCurve);
   elements.qualityChoices.innerHTML = groupedChoices(qualityGroups, quality => choicePill("quality", quality));
-  elements.warningChoices.innerHTML = groupedChoices(listeningGroups, warning => choicePill("warning", warning));
+
 }
 
 function choicePill(name, value) {
@@ -642,7 +642,6 @@ function bindEvents() {
 
     const formData = new FormData(elements.playlistForm);
     const selectedQualities = formData.getAll("quality");
-    const selectedWarnings = formData.getAll("warning");
     const title = String(formData.get("title") || "").trim();
     const hours = Number(formData.get("durationHours"));
     const minutes = Number(formData.get("durationMinutes"));
@@ -654,6 +653,7 @@ function bindEvents() {
     const serviceLink = String(formData.get("serviceLink") || "").trim();
     const energyCurve = getArcBuilderValues();
     const existing = editingId ? getPlaylist(editingId) : null;
+    const selectedWarnings = existing?.creatorWarningLabels || formData.getAll("warning");
     if (editingId && (!existing || existing.creatorId !== currentUser.id)) {
       elements.playlistError.textContent = "You can only edit your own contributions.";
       return;
@@ -678,8 +678,8 @@ function bindEvents() {
       qualities: selectedQualities,
       warnings: warningMapFrom(selectedWarnings),
       taxonomyVersion: 1,
-      listeningReviewed: formData.get("listeningReviewed") === "on",
-      listeningContext: String(formData.get("listeningContext") || "").trim(),
+      listeningReviewed: existing?.listeningReviewed || false,
+      listeningContext: existing?.listeningContext || "",
       listeningReports: selectedWarnings.map(label => ({ label, userId: currentUser.id, context: "" })),
       savedCount: 0,
       createdAt: new Date().toISOString(),
@@ -756,7 +756,7 @@ function render() {
   elements.createPage.hidden = !isEditor;
   elements.viewRoot.hidden = isEditor;
   if (isEditor) { prepareEditor(route); return; }
-  if (route.view === "listening-guide") { renderListeningGuide(); return; }
+
   if (route.view === "playlist") {
     renderPlaylistDetail(route.id);
     return;
@@ -851,14 +851,6 @@ function renderLibrary() {
           <p class="field-hint">Match all selected tags.</p>
           ${groupedChoices(qualityGroups, quality => filterPill(quality, filters.qualities.includes(quality)))}
         </section>
-        <section class="filter-section">
-          <h2>Prefer to exclude…</h2>
-          <p class="field-hint">Hide playlists with any selected note. Unreported content may still be present. <a href="#listening-guide">About listening notes</a></p>
-          <div class="voice-exclusions">
-            ${["sung lyrics", "spoken word"].map(quality => `<label class="toggle-row"><input type="checkbox" data-exclude-quality="${quality}" ${filters.excludedQualities.includes(quality) ? "checked" : ""}><span>${titleCase(quality)}</span></label>`).join("")}
-          </div>
-          ${[...warningOptions, ...new Set(state.playlists.flatMap(p => warningEntries(p).map(([label]) => label)).filter(label => !warningOptions.includes(label)))].map(warning => `<label class="toggle-row"><input data-exclude-warning="${escapeAttribute(warning)}" type="checkbox" ${filters.excludedWarnings.includes(warning) ? "checked" : ""}><span>${escapeHtml(titleCase(warning))}</span></label>`).join("")}
-        </section>
       </aside>
 
       <section class="playlist-column" aria-label="Playlists">
@@ -870,7 +862,6 @@ function renderLibrary() {
           <div class="toolbar-actions">
             <label for="sortSelect" class="sr-only">Sort playlists</label>
             <select id="sortSelect" data-sort-select>
-              <option value="recommended" ${filters.sort === "recommended" ? "selected" : ""}>Recommended</option>
               <option value="newest" ${filters.sort === "newest" ? "selected" : ""}>Newest</option>
               <option value="favorites" ${filters.sort === "favorites" ? "selected" : ""}>Most saved</option>
               <option value="comments" ${filters.sort === "comments" ? "selected" : ""}>Most discussed</option>
@@ -918,7 +909,7 @@ function renderPlaylistDetail(playlistId) {
   const creator = getUser(playlist.creatorId);
   const isFavorite = savedPlaylistIds().includes(playlist.id);
   const isFollowing = state.follows.includes(playlist.creatorId);
-  const allTags = [playlist.modality, ...playlist.qualities];
+  const allTags = [...playlist.qualities];
   const commentRows = playlist.comments.map(commentRow).join("");
 
   elements.viewRoot.innerHTML = `
@@ -927,7 +918,7 @@ function renderPlaylistDetail(playlistId) {
         <div class="detail-cover large-cover" style="--cover-a: ${playlist.coverA}; --cover-b: ${playlist.coverB};"></div>
         <div class="detail-hero-body">
           <a class="back-link" href="#library">Back to library</a>
-          <p class="eyebrow">${escapeHtml(playlist.modality)}</p>
+          <div class="playlist-modality"><span>Modality</span><strong>${escapeHtml(playlist.modality)}</strong></div>
           <div class="detail-title-row">
             <div>
               <h2>${escapeHtml(playlist.title)}</h2>
@@ -977,10 +968,6 @@ function renderPlaylistDetail(playlistId) {
             <p class="notes">${escapeHtml(playlist.notes)}</p>
           </section>
 
-          <section class="detail-section">
-            <h3>Listening notes</h3>
-            ${warningPanel(playlist)}
-          </section>
 
           <section class="detail-section comments-section">
             <h3>Comments</h3>
@@ -1089,14 +1076,14 @@ function filterPill(value, active) {
 function playlistCard(playlist) {
   const creator = getUser(playlist.creatorId);
   const isFavorite = savedPlaylistIds().includes(playlist.id);
-  const tags = [playlist.modality, ...playlist.qualities.slice(0, 3)];
-  const warningsHtml = warningEntries(playlist).slice(0, 2).map(([tag]) => `<span class="tag listening-note">${escapeHtml(titleCase(tag))}${warningOptions.includes(tag) ? "" : " · legacy note"}</span>`).join("");
+  const tags = playlist.qualities.slice(0, 3);
 
   return `
     <article class="playlist-card clickable-card" data-card-href="playlist/${playlist.id}" tabindex="0" role="link" aria-label="Open ${escapeAttribute(playlist.title)}">
       <div class="cover-art" style="--cover-a: ${playlist.coverA}; --cover-b: ${playlist.coverB};"></div>
       <div class="card-body">
         <div class="card-identity">
+          <div class="playlist-modality"><span>Modality</span><strong>${escapeHtml(playlist.modality)}</strong></div>
           <div class="card-title-row">
             <div>
               <h3>${escapeHtml(playlist.title)}</h3>
@@ -1115,8 +1102,7 @@ function playlistCard(playlist) {
           ${energyChart(playlist.energyCurve, "mini")}
         </div>
         <div class="tag-row">
-          ${tags.map((tag, index) => `<span class="tag ${index === 0 ? "modality" : ""}">${escapeHtml(titleCase(tag))}</span>`).join("")}
-          ${warningsHtml}
+          ${tags.map(tag => `<span class="tag">${escapeHtml(titleCase(tag))}</span>`).join("")}
         </div>
         <div class="card-actions">
           <div class="card-stats">
@@ -1173,7 +1159,7 @@ function commentForm(playlistId) {
   return `
     <form class="comment-form" data-comment-form="${playlistId}">
       <label class="sr-only" for="comment-${playlistId}">Add comment</label>
-      <textarea id="comment-${playlistId}" name="comment" placeholder="Context, listening notes, adaptations"></textarea>
+      <textarea id="comment-${playlistId}" name="comment" placeholder="Share context, thoughts, or adaptations"></textarea>
       <button type="submit" class="primary-button">Comment</button>
     </form>
   `;
@@ -1346,7 +1332,7 @@ function clearFilters() {
   services: [],
   minDuration: "",
   maxDuration: "",
-    sort: "recommended"
+    sort: "newest"
   };
   elements.searchInput.value = "";
 }
@@ -1495,8 +1481,8 @@ function prepareEditor(route) {
   const hours = Number(playlist.duration.match(/(\d+)h/)?.[1] || 0);
   const minutes = Number(playlist.duration.match(/(\d+)m/)?.[1] || 0);
   const values = { title: playlist.title, durationHours: hours, durationMinutes: minutes, modality: playlist.modality, notes: playlist.notes, serviceLink: Object.values(playlist.links || {})[0] || "", listeningContext: playlist.listeningContext || "" };
-  for (const [name, value] of Object.entries(values)) form.elements.namedItem(name).value = value;
-  form.elements.namedItem("listeningReviewed").checked = Boolean(playlist.listeningReviewed);
+  for (const [name, value] of Object.entries(values)) { const field = form.elements.namedItem(name); if (field) field.value = value; }
+
   const ownerLabels = playlist.creatorWarningLabels || Object.keys(playlist.warnings || {}).filter(label => !(playlist.listeningReports || []).some(report => report.label === label && report.userId !== state.currentUserId));
   form.querySelectorAll('.form-pills input').forEach(input => {
     input.checked = (input.name === "quality" ? playlist.qualities : ownerLabels).includes(input.value);

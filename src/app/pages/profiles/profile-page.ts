@@ -42,7 +42,6 @@ export class ProfilePage {
     profile: Profile;
     playlists: Playlist[];
     saved: string[];
-    followed: string[];
     invitations: Invitation[];
   }>();
   readonly form = inject(FormBuilder).nonNullable.group({
@@ -60,17 +59,15 @@ export class ProfilePage {
   }
   load(id = this.params().get("id")!, retainData = false) {
     return this.page.run(async () => {
-      const [profile, playlists, saved, followed, invitations] =
-        await Promise.all([
-          this.profiles.get(id),
-          this.playlists.list({ creatorId: id }),
-          this.social.savedIds(),
-          this.social.followedIds(),
-          id === this.member.session()?.userId
-            ? this.invitations.listMine()
-            : Promise.resolve([]),
-        ]);
-      return { profile, playlists, saved, followed, invitations };
+      const [profile, playlists, saved, invitations] = await Promise.all([
+        this.profiles.get(id),
+        this.playlists.list({ creatorId: id }),
+        this.social.savedIds(),
+        id === this.member.session()?.userId
+          ? this.invitations.listMine()
+          : Promise.resolve([]),
+      ]);
+      return { profile, playlists, saved, invitations };
     }, retainData);
   }
   edit() {
@@ -90,16 +87,6 @@ export class ProfilePage {
       this.editing.set(false);
       await Promise.all([this.member.refresh(), this.load(undefined, true)]);
     }, "Profile updated.");
-  }
-  follow() {
-    const data = this.page.data()!;
-    void this.action.run(async () => {
-      await this.social.setFollowed(
-        data.profile.id,
-        !data.followed.includes(data.profile.id),
-      );
-      await this.load(undefined, true);
-    });
   }
   save(playlist: Playlist) {
     const saved = this.page.data()!.saved.includes(playlist.id);

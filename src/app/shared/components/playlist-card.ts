@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from "@angular/core";
+import { Component, input, output } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { TitleCasePipe } from "@angular/common";
 import { Playlist, Profile } from "../../core/models/library";
@@ -14,7 +14,4 @@ export class PlaylistCard {
   readonly saved = input(false);
   readonly busy = input(false);
   readonly save = output<void>();
-  readonly warningLabels = computed(() =>
-    Object.keys(this.playlist().warnings).slice(0, 2),
-  );
 }

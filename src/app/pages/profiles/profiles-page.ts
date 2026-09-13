@@ -35,7 +35,6 @@ import { PageStatus } from "../../shared/components/page-status";
               </div></a
             >
             <p>{{ profile.bio || "No bio yet." }}</p>
-            <p class="card-stats">{{ profile.followerCount }} followers</p>
           </article>
         }
       </div>

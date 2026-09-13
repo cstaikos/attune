@@ -62,27 +62,4 @@
     </fieldset>
     }
   </section>
-  <section class="filter-section">
-    <h2>Prefer to exclude…</h2>
-    <p class="field-hint">
-      Hide playlists with any selected note. Unreported content may still be
-      present. <a routerLink="/listening-guide">About listening notes</a>
-    </p>
-    <div class="voice-exclusions">
-      @for(tag of excludedVoices;track tag){<label class="toggle-row"
-        ><input
-          type="checkbox"
-          [checked]="query().excludedQualities?.includes(tag)"
-          (change)="toggle('excludedQualities',tag)"
-        />{{tag | titlecase}}</label
-      >}
-    </div>
-    @for(note of noteLabels;track note){<label class="toggle-row"
-      ><input
-        type="checkbox"
-        [checked]="query().excludedWarnings?.includes(note)"
-        (change)="toggle('excludedWarnings',note)"
-      />{{note | titlecase}}</label
-    >}
-  </section>
 </aside>

@@ -72,15 +72,16 @@ const playlist = shape({
   coverA: text,
   coverB: text,
   notes: text,
-  links: (v) =>
-    object(v) &&
-    Object.entries(v).every(
-      ([key, value]) =>
-        ["spotify", "youtube", "apple", "other"].includes(key) && text(value),
-    ),
+  links: (v) => object(v) && Object.values(v).every(text),
   tracks: array(shape({ title: text, artist: text })),
   comments: array(
-    shape({ id: text, userId: text, body: text, createdAt: optional(text) }),
+    shape({
+      id: text,
+      userId: text,
+      body: text,
+      warning: optional(bool),
+      createdAt: optional(text),
+    }),
   ),
 });
 const stateCheck = shape({

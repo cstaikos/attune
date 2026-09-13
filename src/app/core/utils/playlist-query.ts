@@ -31,14 +31,11 @@ export function queryPlaylists(
       p.title,
       p.notes,
       p.modality,
-      p.listeningContext,
       creator?.username,
       creator?.displayName,
       creator?.practice,
       ...p.qualities,
       ...(p.legacyQualities || []),
-      ...Object.keys(p.warnings),
-      ...p.listeningReports.map((r) => r.context),
       ...p.tracks.map((t) => `${t.title} ${t.artist}`),
     ]
       .join(" ")
@@ -75,12 +72,7 @@ export function queryPlaylists(
       case "comments":
         return b.comments.length - a.comments.length;
       default:
-        return (
-          b.savedCount +
-          b.comments.length * 4 -
-          a.savedCount -
-          a.comments.length * 4
-        );
+        return Date.parse(b.createdAt) - Date.parse(a.createdAt);
     }
   });
 }

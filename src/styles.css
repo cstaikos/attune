@@ -225,3 +225,50 @@ app-playlist-card .meta-line {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+.create-form .form-grid > .modality-field {
+  align-self: end;
+}
+.create-form .duration-inputs input,
+.create-form .modality-field select {
+  height: 44px;
+}
+.link-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.link-editor label {
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .link-editor {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .link-editor label {
+    grid-column: 1 / -1;
+  }
+  .toolbar-actions {
+    flex-wrap: wrap;
+  }
+}
+.service-link[data-service="spotify"] {
+  background: #216e42;
+}
+.service-link[data-service="apple"] {
+  background: #ad344c;
+}
+.service-link[data-service="youtube"] {
+  background: #b7352d;
+}
+.service-link[data-service="other"] {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.playlist-detail .detail-content {
+  grid-template-columns: minmax(0, 1fr);
+}

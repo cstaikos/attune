@@ -33,11 +33,11 @@ export function cleanDraft(input: PlaylistDraft): PlaylistDraft {
     input.creatorWarningLabels.some((label) => !labels.includes(label)) ||
     input.listeningContext.length > 1000 ||
     !links.length ||
-    links.some(([key, url]) => parsePlaylistLink(url)?.key !== key)
+    links.some(([, url]) => !parsePlaylistLink(url))
   )
     throw new ServiceError(
       "invalid-input",
-      "Check the title, duration, tags, energy curve, listening notes, and direct playlist links.",
+      "Check the title, duration, tags, energy curve, and URLs.",
     );
   return {
     title: input.title.trim(),

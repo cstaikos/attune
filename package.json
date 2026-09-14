@@ -6,6 +6,13 @@
     "node": "^22.22.3 || ^24.15.0 || ^26.0.0"
   },
   "scripts": {
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset --local",
+    "db:migrate": "supabase migration up --local",
+    "db:test": "supabase test db",
+    "db:lint": "supabase db lint --local --schema public,private",
     "start": "ng serve",
     "build": "ng build",
     "test": "tsc -p tsconfig.mock-tests.json && node --test tests/*.test.cjs",
@@ -27,6 +34,7 @@
     "@angular/cli": "~22.1.6",
     "@angular/compiler-cli": "~22.1.6",
     "prettier": "^3.9.6",
+    "supabase": "2.117.0",
     "typescript": "~6.0.0"
   }
 }

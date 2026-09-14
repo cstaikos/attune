@@ -28,8 +28,9 @@ than real recipients. Verify staging's Postgres major version before deploying
 the first schema migration.
 
 `pnpm db:reset` explicitly targets the local database. It erases local test data,
-replays SQL migrations, and loads `supabase/seed.sql`. The seed file is currently
-empty because the application schema is the next step. See `supabase/migrations/README.md`.
+replays SQL migrations, and loads `supabase/seed.sql`. The seed creates one local
+bootstrap invitation, `DEV-ATTUNE-LOCAL-ONLY`; it contains no user accounts.
+See [Database schema](database-schema.md) for the tables, permissions, and RPCs.
 
 Starting this stack does not switch the Angular app away from its mock services.
 The local API URL and keys will be wired into a separate development configuration
@@ -49,14 +50,17 @@ not activate shared authentication or database persistence.
 
 ## Next implementation steps
 
-1. Start the initialized local stack once Docker is running.
-2. Define the schema, explicit API grants, and row-level security policies in SQL
-   migrations, with separate development seed data.
-3. Implement the Supabase service adapters behind the existing service contracts,
+Step 2 is complete locally: tables, access policies, invitation RPCs, and bootstrap
+seed are installed. All 52 database tests pass; SQL lint reports no errors.
+Staging is unchanged, and the Angular app still uses mock services.
+
+Continue with:
+
+1. Implement the Supabase service adapters behind the existing service contracts,
    including secure invitation redemption and verified membership.
-4. Test locally, authenticate the CLI with the project owner's account, link the
+2. Test locally, authenticate the CLI with the project owner's account, link the
    staging project, and apply the migrations.
-5. Switch the application providers once shared authentication and data access are
+3. Switch the application providers once shared authentication and data access are
    ready together; verify the cross-device and authorization checks in the beta plan.
 
 The publishable key allows client API requests subject to database permissions.

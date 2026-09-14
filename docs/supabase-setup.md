@@ -32,38 +32,94 @@ replays SQL migrations, and loads `supabase/seed.sql`. The seed creates one loca
 bootstrap invitation, `DEV-ATTUNE-LOCAL-ONLY`; it contains no user accounts.
 See [Database schema](database-schema.md) for the tables, permissions, and RPCs.
 
-Starting this stack does not switch the Angular app away from its mock services.
-The local API URL and keys will be wired into a separate development configuration
-when the real adapters are implemented. Do not replace staging's settings with
-localhost values for a Cloudflare build.
+Run `pnpm start:local` to use the local stack with the public settings in
+`src/environments/environment.local.ts`. If a newly created stack has a different
+publishable key, update that file from `pnpm db:status`. `pnpm start` and production
+builds use the hosted public configuration instead. Never copy a secret or
+service-role key into either environment file.
 
-## Hosted staging
+## Authentication behavior
 
-Project reference: `mtlfdrkrrqxdfsjcuery`
+The app now registers Supabase adapters for authentication, profiles, invitations,
+playlists, saves, and follows. Browser-only mock accounts and demo invitation codes
+are no longer used by the Angular app. Prototype/mock data is not imported.
 
-Public connection settings are recorded in `src/environments/environment.ts`.
-These values are intended for the browser; database passwords, secret keys, and
-service-role keys must never be added to that file.
+1. Register an email/password at `/join`. The response asks the user to check email
+   without claiming whether an account already exists.
+2. Supabase emails its standard `{{ .ConfirmationURL }}` link. Keep that variable
+   in signup and recovery email templates. The SDK uses PKCE: open the email in
+   the same browser and origin where the request began. Switching devices requires
+   signing in after email confirmation; recovery needs a new request on that device.
+3. `/auth/callback` exchanges the one-use code and removes it from browser history.
+   Invalid, expired, reused, or wrong-browser links offer verification/recovery retry.
+4. A verified account enters a username, practice, and invitation at `/redeem`.
+   `redeem_invitation()` alone creates membership and consumes the code atomically.
+   Invalid codes can be corrected without re-registering. Codes are case-sensitive.
+5. Login restores server-verified identity and membership. Pending accounts go to
+   redemption; suspended accounts cannot enter the library. Database RLS remains
+   authoritative for every community request.
+6. `/forgot-password` sends a recovery link. `/reset-password` checks matching new
+   passwords, updates through Auth, and signs out globally so the user signs in
+   again. Global logout revokes refresh tokens; existing access JWTs can remain
+   valid until their configured expiry. Use membership suspension for immediate
+   community-access revocation.
 
-The application still uses `provideMockServices()`. Recording these settings does
-not activate shared authentication or database persistence.
+Sessions and PKCE verifiers are managed by the Supabase SDK in browser storage;
+passwords and invitation codes are never persisted there by the app. This SPA
+requires normal XSS protections; it does not use HttpOnly session cookies.
+Invitation creation shows a code once in memory. History contains only status and
+metadata. Copy the code before leaving the profile page.
 
-## Next implementation steps
+## Hosted staging: required before testers join
 
-Step 2 is complete locally: tables, access policies, invitation RPCs, and bootstrap
-seed are installed. All 52 database tests pass; SQL lint reports no errors.
-Staging is unchanged, and the Angular app still uses mock services.
+Project reference: `mtlfdrkrrqxdfsjcuery`. This change does not deploy the schema or
+configure hosted Auth/email settings. Complete these steps before deploying the
+new frontend to testers:
 
-Continue with:
+1. Authenticate the Supabase CLI locally as the project owner, link the project,
+   review `supabase db push --dry-run`, then apply both migrations. Do not apply
+   `supabase/seed.sql` remotely. Confirm Postgres 17 compatibility first.
+2. Set Auth's Site URL to the deployed HTTPS origin. Allow the exact redirect URLs
+   `<origin>/auth/callback` and `<origin>/auth/callback?recovery=1`. Add each approved
+   staging origin explicitly; avoid wildcard production redirects. Configure the
+   static host to serve Angular's `index.html` for application routes.
+3. Keep email confirmation enabled, anonymous login disabled, refresh-token rotation
+   enabled, and minimum password length at least eight. Match these settings to
+   the checked-in local Auth configuration.
+4. Configure an email delivery provider in Supabase Auth SMTP settings. Store SMTP
+   credentials in Supabase, never in browser configuration or source control.
+   Verify the sending domain and sender address, configure the provider's SPF/DKIM
+   records, retain `{{ .ConfirmationURL }}` in email templates, and disable link
+   tracking that rewrites authentication links. Configure appropriate email and
+   authentication rate limits; the checked-in local email limit is deliberately low.
+5. Issue a random bootstrap invitation through a trusted database connection. Store
+   only its SHA-256 hash in `private.invitations`, set an expiry, and share the raw
+   code privately once. Do not use local seed or former mock codes with testers.
+6. Verify signup, confirmation, resend, recovery, logout, invitation reuse rejection,
+   suspension, refresh, and cross-device login on the hosted origin before inviting
+   testers. Local inbox delivery does not validate the production email provider.
 
-1. Implement the Supabase service adapters behind the existing service contracts,
-   including secure invitation redemption and verified membership.
-2. Test locally, authenticate the CLI with the project owner's account, link the
-   staging project, and apply the migrations.
-3. Switch the application providers once shared authentication and data access are
-   ready together; verify the cross-device and authorization checks in the beta plan.
+## Verification
 
-The publishable key allows client API requests subject to database permissions.
-It does not authorize schema deployment or project administration. CLI deployment
-will need the owner's Supabase login and any database credentials requested by the
-CLI, entered locally rather than committed to the repository.
+`pnpm test` runs the service/prototype regressions and authentication adapter tests.
+`pnpm db:test` runs rollback-isolated RLS, invitation, and atomic playlist tests;
+`pnpm db:lint` checks SQL functions. `pnpm build` checks Angular templates as well.
+
+For the opt-in live Auth/email/database test, after compiling with `pnpm test`:
+
+```sh
+pnpm exec supabase status -o json > /tmp/attune-local-status.json
+ATTUNE_LOCAL_STATUS=/tmp/attune-local-status.json node --test tests/supabase-local.test.cjs
+```
+
+The status file contains local secrets: keep it outside the repository. The test
+asserts localhost endpoints, creates a synthetic account and a separate random
+invitation, reads captured Mailpit email, exercises PKCE verification and recovery,
+checks authenticated adapters, and removes its database/account fixtures. It needs
+Docker access for provisioning its local invitation. Never point it at staging.
+
+The pinned CLI currently starts PostgREST 16.2. If fresh local JWTs fail with
+`PGRST303: JWT issued at future`, restarting `supabase_rest_attune-local` can clear
+the stale clock; upgrade the local stack to PostgREST 16.3 or later when supported
+by the CLI for the upstream fix. Do not weaken JWT checks or membership policies.
+See [PostgREST 16.3 release notes](https://github.com/PostgREST/postgrest/releases/tag/v16.3).

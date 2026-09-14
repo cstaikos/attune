@@ -27,6 +27,14 @@ import { PlaylistCard } from "../../shared/components/playlist-card";
   templateUrl: "./profile-page.html",
 })
 export class ProfilePage {
+  readonly createdInvitation = signal<Invitation | null>(null);
+  invitationStatus(invitation: Invitation) {
+    return invitation.redeemedBy
+      ? "Used"
+      : invitation.expiresAt && Date.parse(invitation.expiresAt) <= Date.now()
+        ? "Expired"
+        : "Available";
+  }
   private readonly profiles = inject(PROFILE_SERVICE);
   private readonly playlists = inject(PLAYLIST_SERVICE);
   private readonly social = inject(SOCIAL_SERVICE);
@@ -97,7 +105,7 @@ export class ProfilePage {
   }
   invite() {
     void this.action.run(async () => {
-      await this.invitations.create();
+      this.createdInvitation.set(await this.invitations.create());
       await this.load(undefined, true);
     }, "Invitation created. Select and copy its code below.");
   }

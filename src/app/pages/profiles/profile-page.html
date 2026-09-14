@@ -70,10 +70,20 @@
         Create invitation
       </button>
       <ul class="invite-list">
-        @for(invite of data.invitations;track invite.id){
+        @if(createdInvitation(); as created) {
         <li>
-          <code>{{invite.code}}</code
-          ><span>{{invite.redeemedBy ? 'Used' : 'Available'}}</span>
+          <div>
+            <p>
+              Copy this code now. It won’t be shown again after you leave this
+              page.
+            </p>
+            <code>{{created.code}}</code>
+          </div>
+        </li>
+        } @for(invite of data.invitations;track invite.id){
+        <li>
+          <span>Invitation {{invite.id.slice(0,8)}}</span
+          ><span>{{invitationStatus(invite)}}</span>
         </li>
         }
       </ul>

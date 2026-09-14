@@ -1,3 +1,4 @@
+import { firstValueFrom } from "rxjs";
 import { AuthService, Credentials, Registration } from "../contracts/auth";
 import { ServiceError } from "../service-error";
 import { hashPassword } from "../../utils/password";
@@ -6,6 +7,26 @@ export class MockAuth implements AuthService {
   readonly session$;
   constructor(private readonly store: MockStore) {
     this.session$ = store.session$;
+  }
+  getAccess() {
+    return firstValueFrom(this.session$);
+  }
+  async resendVerification(_email: string): Promise<void> {
+    throw new Error("Email requires Supabase.");
+  }
+  async requestPasswordReset(_email: string): Promise<void> {
+    throw new Error("Email requires Supabase.");
+  }
+  async updatePassword(_password: string): Promise<void> {
+    throw new Error("Recovery requires Supabase.");
+  }
+  async completeCallback(_code: string): Promise<void> {
+    throw new Error("Verification requires Supabase.");
+  }
+  async redeemInvitation(
+    _input: Omit<Registration, "email" | "password">,
+  ): Promise<void> {
+    throw new Error("Use mock registration.");
   }
   async signIn(credentials: Credentials) {
     const email = credentials.email.trim().toLowerCase();

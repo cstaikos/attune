@@ -78,7 +78,7 @@ export interface Follow {
 
 export interface Invitation {
   id: string;
-  code: string;
+  code?: string;
   createdBy: UserId;
   redeemedBy: UserId | null;
   expiresAt: string | null;
@@ -87,4 +87,5 @@ export interface Invitation {
 /** A session identifies the signed-in user; credentials are never part of profile data. */
 export interface Session {
   userId: UserId;
+  membership?: "active" | "pending" | "suspended";
 }

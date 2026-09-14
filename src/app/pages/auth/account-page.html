@@ -1,0 +1,96 @@
+<section class="auth-page">
+  <p class="eyebrow">Private beta</p>
+  <h2>
+    {{mode === 'callback' && action.error() ? 'Check your email link.' :
+    heading[mode]}}
+  </h2>
+  @if(mode === 'verify') {
+  <p>
+    Follow the link in your email to verify your account, then redeem your
+    invitation. To request another link, enter your email below.
+  </p>
+  } @if(mode === 'forgot') {
+  <p>We’ll email you a link to choose a new password.</p>
+  } @if(mode === 'redeem' && !suspended()) {
+  <p>Your email must be verified before you can redeem your invitation.</p>
+  } @if(suspended()) {
+  <p>
+    Your membership is suspended. Contact the person who invited you for help.
+  </p>
+  } @if(ready()) {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <fieldset [disabled]="action.busy()">
+      @if(mode === 'verify' || mode === 'forgot') {
+      <label
+        >Email<input
+          formControlName="email"
+          type="email"
+          autocomplete="email"
+          required
+      /></label>
+      } @if(mode === 'reset') {
+      <label
+        >New password<input
+          formControlName="password"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+      /></label>
+      <label
+        >Confirm password<input
+          formControlName="confirmation"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+      /></label>
+      } @if(mode === 'redeem') {
+      <label
+        >Username<input
+          formControlName="username"
+          autocomplete="username"
+          required
+        /><span class="field-hint"
+          >3–30 letters, numbers, or hyphens.</span
+        ></label
+      >
+      <label
+        >Display name (optional)<input
+          formControlName="displayName"
+          autocomplete="nickname"
+          maxlength="100"
+      /></label>
+      <label
+        >Practice context<input
+          formControlName="practice"
+          maxlength="200"
+          required
+          placeholder="Therapist, facilitator, researcher"
+      /></label>
+      <label
+        >Invite code<input
+          formControlName="inviteCode"
+          autocomplete="off"
+          required
+      /></label>
+      }
+      <button class="primary-button" type="submit">
+        {{action.busy() ? 'Please wait…' : mode === 'redeem' ? 'Redeem
+        invitation' : mode === 'reset' ? 'Update password' : 'Send email link'}}
+      </button>
+    </fieldset>
+  </form>
+  }
+  <app-action-feedback [error]="action.error()" [message]="action.message()" />
+  <p>
+    <a routerLink="/login">Sign in</a> ·
+    <a routerLink="/verify-email">Verify email</a> ·
+    <a routerLink="/forgot-password">Recover password</a>
+  </p>
+  @if(mode === 'redeem') {
+  <button class="ghost-button" [disabled]="action.busy()" (click)="signOut()">
+    Sign out
+  </button>
+  }
+</section>

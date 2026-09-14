@@ -31,6 +31,12 @@ export class AuthPage {
     practice: [""],
     inviteCode: [""],
   });
+  constructor() {
+    if (this.route.snapshot.queryParamMap.has("unavailable"))
+      this.action.error.set(
+        "Unable to check your account. Check your connection and try signing in again.",
+      );
+  }
   submit() {
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -41,10 +47,19 @@ export class AuthPage {
     }
     void this.action.run(async () => {
       const value = this.form.getRawValue();
-      if (this.joining()) await this.auth.signUp(value);
-      else await this.auth.signIn(value);
-      this.form.controls.password.reset();
-      await this.router.navigateByUrl(this.destination);
+      if (this.joining()) {
+        await this.auth.signUp(value);
+        this.form.controls.password.reset();
+        await this.router.navigate(["/verify-email"]);
+      } else {
+        const session = await this.auth.signIn(value);
+        this.form.controls.password.reset();
+        await this.router.navigateByUrl(
+          session.membership && session.membership !== "active"
+            ? "/redeem"
+            : this.destination,
+        );
+      }
     });
   }
 }

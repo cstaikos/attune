@@ -9,6 +9,19 @@ const editor = () =>
 export const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "library" },
   { path: "login", title: "Sign in · Attune", loadComponent: auth },
+  ...[
+    { path: "auth/callback", mode: "callback", title: "Verify email" },
+    { path: "verify-email", mode: "verify", title: "Verify email" },
+    { path: "forgot-password", mode: "forgot", title: "Recover password" },
+    { path: "reset-password", mode: "reset", title: "Reset password" },
+    { path: "redeem", mode: "redeem", title: "Redeem invitation" },
+  ].map(({ path, mode, title }) => ({
+    path,
+    title: `${title} · Attune`,
+    data: { mode },
+    loadComponent: () =>
+      import("./pages/auth/account-page").then((m) => m.AccountPage),
+  })),
   {
     path: "join",
     title: "Join · Attune",

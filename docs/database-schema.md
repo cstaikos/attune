@@ -1,8 +1,8 @@
 # Community database
 
 The initial SQL migration is `supabase/migrations/20260914000100_initial_community.sql`.
-It targets local Supabase. The Angular app still uses mock services; hosted staging
-has not received this migration.
+The Angular app uses Supabase adapters. Hosted staging still needs both migrations
+applied before the new frontend is deployed.
 
 ## Tables and access
 
@@ -44,7 +44,7 @@ single-use bootstrap invitation without an issuer. The seed contains no accounts
 or passwords. Never apply this seed to staging or production; provision a random
 bootstrap invitation through a trusted backend there.
 
-## Adapter mapping for the next step
+## Adapter mapping
 
 - Map snake_case fields to the existing TypeScript models. Format
   `duration_minutes` as the current `"30m"` domain representation.
@@ -58,12 +58,13 @@ bootstrap invitation through a trusted backend there.
   added when implementing list queries if needed.
 - Use `my_membership()` for the current member's invite allowance. Do not expose
   invitation balances in other members' profiles.
-- Adapt the invitation interface: the code is returned only at creation, so
-  history entries cannot require a recoverable code.
-- Adapt registration to support email verification and later redemption rather
-  than promising an immediate signed-in profile.
-- Creator warning changes and playlist edits will need an atomic write operation
-  when the playlist adapter is implemented.
+- Invitation codes are optional in the domain model and returned only at creation;
+  history entries contain metadata only.
+- Registration asks for email verification before profile creation and redemption.
+- `save_playlist(playlist_id, draft, warning_labels)` atomically saves playlist
+  fields and creator labels. It runs as the caller with RLS, preserves other members’
+  reports and existing label context, and rejects edits by non-owners. Its migration
+  is `20260914000200_save_playlist.sql`.
 
 Playlist deletion cascades to its comments, listening reports, and saves. Account
 deletion is restricted until contribution ownership and retention are decided.

@@ -13,10 +13,15 @@ Use Node 24.15 or newer in the Node 24 release line and pnpm 11.
 
 ```sh
 pnpm install
-pnpm start
+pnpm db:start
+pnpm start:local
 ```
 
-Open http://localhost:4200. No external accounts or API keys are required. Create a local test account from Join.
+Open http://localhost:4200. Register, verify your email in the local test inbox at
+http://127.0.0.1:54324, then redeem `DEV-ATTUNE-LOCAL-ONLY` (single use).
+See [Supabase setup](docs/supabase-setup.md) for migrations, hosted configuration,
+and the email-provider checklist required before testers join. `pnpm start` uses
+the hosted public settings; `pnpm start:local` uses the local Supabase stack.
 
 ```sh
 pnpm build      # Production files in dist/resonance/browser
@@ -27,7 +32,13 @@ pnpm test      # Compile mock services and run service + prototype regression te
 The production build also checks Angular templates. A static host will need to
 rewrite application routes to index.html so direct links and refreshes work.
 
-## Step 1 scope
+## Historical prototype and mock implementation
+
+The following sections describe the retained prototype and test mocks. The Angular
+app now uses `provideSupabaseServices()` for real authentication and database access.
+Browser-only accounts and mock invitation codes below apply only to the test harness.
+
+### Step 1 scope
 
 - Standalone Angular application, strict TypeScript, and zoneless change detection.
 - Shared header, navigation, footer, and the existing design stylesheet.
@@ -36,7 +47,7 @@ rewrite application routes to index.html so direct links and refreshes work.
 - Provider-independent domain models and the prototype's current tag taxonomy.
 
 The screens are now connected to mock services, with member-only routes and local
-persistence. This is a local working beta; production authorization is not implemented.
+persistence. These mocks remain available for regression tests.
 
 ## Layout
 
@@ -134,7 +145,6 @@ Browser verification covers registration/login, refresh persistence, saved lists
 combined filters and exclusions, creation/editing, comment and listening-note retention,
 profile updates, invitations, navigation confirmation, and responsive layout.
 
-Remaining boundaries: mock data is local to one browser origin; music imports,
-email verification/reset delivery, image uploads, and production connectivity are
-not included. The original demonstration playlists still contain placeholder service
+Remaining release work includes hosted migrations and email delivery configuration.
+Music imports and image uploads are not included. The original demonstration playlists still contain placeholder service
 URLs, which the detail page explicitly identifies as needing a direct playlist link.

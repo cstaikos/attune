@@ -11,6 +11,7 @@
   "exclude": [
     "src/app/core/services/service-tokens.ts",
     "src/app/core/services/mock/provide-mock-services.ts",
+    "src/app/core/services/supabase/provide-supabase-services.ts",
     "src/app/core/auth/**"
   ]
 }

@@ -1,7 +1,7 @@
 import { ApplicationConfig } from "@angular/core";
 import { provideRouter, withInMemoryScrolling } from "@angular/router";
 import { routes } from "./app.routes";
-import { provideMockServices } from "./core/services/mock/provide-mock-services";
+import { provideSupabaseServices } from "./core/services/supabase/provide-supabase-services";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -9,6 +9,6 @@ export const appConfig: ApplicationConfig = {
       routes,
       withInMemoryScrolling({ scrollPositionRestoration: "top" }),
     ),
-    provideMockServices(),
+    provideSupabaseServices(),
   ],
 };

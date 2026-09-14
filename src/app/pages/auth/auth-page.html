@@ -22,35 +22,6 @@
           minlength="8"
           required
       /></label>
-      @if(joining()) {
-      <label
-        >Username<input
-          formControlName="username"
-          autocomplete="username"
-          required
-          pattern="[a-zA-Z0-9][a-zA-Z0-9-]{2,29}"
-        /><span class="field-hint"
-          >3–30 letters, numbers, or hyphens.</span
-        ></label
-      >
-      <label
-        >Display name (optional)<input
-          formControlName="displayName"
-          autocomplete="nickname"
-      /></label>
-      <label
-        >Practice context<input
-          formControlName="practice"
-          required
-          placeholder="Therapist, facilitator, researcher"
-      /></label>
-      <label
-        >Invite code<input
-          formControlName="inviteCode"
-          required
-          autocomplete="off"
-      /></label>
-      }
       <button class="primary-button" type="submit">
         {{action.busy() ? 'Please wait…' : joining() ? 'Create account' : 'Sign
         in'}}
@@ -71,15 +42,14 @@
     >
   </p>
   }
-  <details class="local-demo-note">
-    <summary>About this local preview</summary>
-    <p>
-      Accounts and changes stay in this browser. Use a test password, not one
-      you use elsewhere. No emails are sent.
-    </p>
-    <p>
-      For your first account, use BETA-2026, GUIDE-2026, or BREATH-2026. Each
-      code can be used once.
-    </p>
-  </details>
+  <p>
+    <a routerLink="/forgot-password">Forgot password?</a> ·
+    <a routerLink="/verify-email">Resend verification email</a>
+  </p>
+  @if(joining()) {
+  <p>
+    Verify your email, then enter your invitation code to join. Open the email
+    link in this browser.
+  </p>
+  }
 </section>

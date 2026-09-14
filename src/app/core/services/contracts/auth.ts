@@ -12,7 +12,15 @@ export interface Registration extends Credentials {
 }
 export interface AuthService {
   readonly session$: Observable<Session | null>;
+  getAccess(): Promise<Session | null>;
   signIn(credentials: Credentials): Promise<Session>;
-  signUp(registration: Registration): Promise<Profile>;
+  signUp(registration: Registration): Promise<Profile | void>;
+  resendVerification(email: string): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  updatePassword(password: string): Promise<void>;
+  completeCallback(code: string): Promise<void>;
+  redeemInvitation(
+    input: Omit<Registration, "email" | "password">,
+  ): Promise<void>;
   signOut(): Promise<void>;
 }

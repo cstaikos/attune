@@ -50,7 +50,9 @@ export class App {
       if (
         this.hadSession &&
         !signedIn &&
-        !/^\/(login|join)(?:[/?#]|$)/.test(this.router.url)
+        !/^\/(login|join|redeem|verify-email|forgot-password|reset-password|auth)(?:[/?#]|$)/.test(
+          this.router.url,
+        )
       )
         void this.router.navigate(["/login"], {
           queryParams: { returnUrl: this.router.url },

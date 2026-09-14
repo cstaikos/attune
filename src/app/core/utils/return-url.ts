@@ -4,7 +4,9 @@ export function safeReturnUrl(value: string | null): string {
     value.startsWith("/") &&
     !value.startsWith("//") &&
     !value.includes("\\") &&
-    !/^\/(login|join)(?:[/?#]|$)/.test(value)
+    !/^\/(login|join|redeem|verify-email|forgot-password|reset-password|auth)(?:[/?#]|$)/.test(
+      value,
+    )
     ? value
     : "/library";
 }

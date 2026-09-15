@@ -1,3 +1,5 @@
+import { UI_FIELDS } from "./shared/ui/field";
+import { UI_BUTTONS } from "./shared/ui/native-button";
 import { LeaveDialog } from "./shared/components/leave-dialog";
 import { Component, effect, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
@@ -11,12 +13,16 @@ import {
 import { toSignal } from "@angular/core/rxjs-interop";
 import { filter, map } from "rxjs";
 import { MemberSession } from "./core/auth/member-session";
+import { MODERATION_SERVICE } from "./core/services/service-tokens";
+import { signal } from "@angular/core";
 import { AUTH_SERVICE } from "./core/services/service-tokens";
 import { ActionState } from "./shared/state/action-state";
 import { ActionFeedback } from "./shared/components/action-feedback";
 @Component({
   selector: "app-root",
   imports: [
+    ...UI_BUTTONS,
+    ...UI_FIELDS,
     FormsModule,
     RouterLink,
     RouterLinkActive,
@@ -27,6 +33,8 @@ import { ActionFeedback } from "./shared/components/action-feedback";
   templateUrl: "./app.html",
 })
 export class App {
+  readonly isAdmin = signal(false);
+  private readonly moderation = inject(MODERATION_SERVICE);
   readonly member = inject(MemberSession);
   readonly action = new ActionState();
   private readonly auth = inject(AUTH_SERVICE);
@@ -47,6 +55,12 @@ export class App {
     });
     effect(() => {
       const signedIn = !!this.member.session();
+      this.isAdmin.set(false);
+      if (signedIn)
+        void this.moderation
+          .isAdmin()
+          .then((value) => this.isAdmin.set(value))
+          .catch(() => this.isAdmin.set(false));
       if (
         this.hadSession &&
         !signedIn &&

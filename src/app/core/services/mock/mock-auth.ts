@@ -1,4 +1,3 @@
-import { firstValueFrom } from "rxjs";
 import { AuthService, Credentials, Registration } from "../contracts/auth";
 import { ServiceError } from "../service-error";
 import { hashPassword } from "../../utils/password";
@@ -9,7 +8,16 @@ export class MockAuth implements AuthService {
     this.session$ = store.session$;
   }
   getAccess() {
-    return firstValueFrom(this.session$);
+    return this.store.read("auth.access", (s) =>
+      s.session
+        ? {
+            ...s.session,
+            membership:
+              s.moderation?.members.find((m) => m.user_id === s.session!.userId)
+                ?.status ?? "active",
+          }
+        : null,
+    );
   }
   async resendVerification(_email: string): Promise<void> {
     throw new Error("Email requires Supabase.");
@@ -43,7 +51,12 @@ export class MockAuth implements AuthService {
       );
     return this.store.write("auth.signIn", (s) => {
       findProfile(s, account.userId);
-      return (s.session = { userId: account.userId });
+      return (s.session = {
+        userId: account.userId,
+        membership:
+          s.moderation?.members.find((m) => m.user_id === account.userId)
+            ?.status ?? "active",
+      });
     });
   }
   async signUp(input: Registration) {
@@ -76,6 +89,9 @@ export class MockAuth implements AuthService {
       if (
         !invite ||
         invite.redeemedBy ||
+        s.moderation?.members.some(
+          (m) => m.user_id === invite.createdBy && m.status === "suspended",
+        ) ||
         (invite.expiresAt && Date.parse(invite.expiresAt) <= Date.now())
       )
         throw new ServiceError(
@@ -95,6 +111,12 @@ export class MockAuth implements AuthService {
         followerCount: 0,
       };
       s.profiles.push(profile);
+      s.moderation?.members.push({
+        user_id: profile.id,
+        username,
+        status: "active",
+        role: "member",
+      });
       s.accounts.push({ userId: profile.id, email, salt, hash });
       invite.redeemedBy = profile.id;
       s.session = { userId: profile.id };

@@ -4,6 +4,10 @@ import { PlaylistService } from "./contracts/playlists";
 import { ProfileService } from "./contracts/profiles";
 import { SocialService } from "./contracts/social";
 import { InvitationService } from "./contracts/invitations";
+import { ModerationService } from "./contracts/moderation";
+export const MODERATION_SERVICE = new InjectionToken<ModerationService>(
+  "ModerationService",
+);
 export const AUTH_SERVICE = new InjectionToken<AuthService>("AuthService");
 export const PLAYLIST_SERVICE = new InjectionToken<PlaylistService>(
   "PlaylistService",

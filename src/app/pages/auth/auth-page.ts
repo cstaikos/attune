@@ -6,9 +6,17 @@ import { AUTH_SERVICE } from "../../core/services/service-tokens";
 import { safeReturnUrl } from "../../core/utils/return-url";
 import { ActionState } from "../../shared/state/action-state";
 import { ActionFeedback } from "../../shared/components/action-feedback";
+import { AppButton } from "../../shared/ui/button";
+import { AppTextField } from "../../shared/ui/text-field";
 @Component({
   selector: "app-auth-page",
-  imports: [ReactiveFormsModule, RouterLink, ActionFeedback],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    ActionFeedback,
+    AppButton,
+    AppTextField,
+  ],
   templateUrl: "./auth-page.html",
 })
 export class AuthPage {

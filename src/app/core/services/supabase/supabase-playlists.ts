@@ -15,6 +15,7 @@ import { queryPlaylists } from "../../utils/playlist-query";
 import { result, rows, userId } from "./database";
 import { SupabaseProfiles } from "./supabase-profiles";
 interface CommentRow {
+  hidden: boolean;
   id: string;
   user_id: string;
   body: string;
@@ -27,6 +28,7 @@ interface ReportRow {
   context: string;
 }
 interface PlaylistRow {
+  hidden: boolean;
   id: string;
   creator_id: string;
   title: string;
@@ -45,6 +47,7 @@ interface PlaylistRow {
   updated_at: string;
 }
 const comment = (row: CommentRow): PlaylistComment => ({
+  hidden: row.hidden,
   id: row.id,
   userId: row.user_id,
   body: row.body,
@@ -75,6 +78,7 @@ export class SupabasePlaylists implements PlaylistService {
     for (const report of listeningReports)
       warnings[report.label] = (warnings[report.label] || 0) + 1;
     return {
+      hidden: row.hidden,
       id: row.id,
       creatorId: row.creator_id,
       title: row.title,
@@ -176,13 +180,11 @@ export class SupabasePlaylists implements PlaylistService {
     report: Pick<ListeningReport, "label" | "context">,
   ) {
     await result(
-      this.client
-        .from("listening_reports")
-        .insert({
-          playlist_id: id,
-          label: report.label,
-          context: report.context.trim(),
-        }),
+      this.client.from("listening_reports").insert({
+        playlist_id: id,
+        label: report.label,
+        context: report.context.trim(),
+      }),
     );
   }
 }

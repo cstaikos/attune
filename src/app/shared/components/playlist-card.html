@@ -1,3 +1,6 @@
+@if(playlist().hidden){
+<p>Hidden from members · Administrator review</p>
+}
 <article class="playlist-card">
   <a
     class="cover-art"
@@ -26,7 +29,9 @@
           </p>
         </div>
         <button
-          class="save-button"
+          matButton
+          appButton="chip"
+          size="small"
           [class.active]="saved()"
           [disabled]="busy()"
           [attr.aria-pressed]="saved()"

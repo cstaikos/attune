@@ -1,3 +1,6 @@
+import { UI_FIELDS } from "../../shared/ui/field";
+import { UI_BUTTONS } from "../../shared/ui/native-button";
+import { ListView } from "../../shared/components/list-view";
 import { Component, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -18,6 +21,9 @@ import { LibraryFilters } from "./library-filters";
 @Component({
   selector: "app-library-page",
   imports: [
+    ...UI_BUTTONS,
+    ...UI_FIELDS,
+    ListView,
     FormsModule,
     RouterLink,
     PageStatus,

@@ -13,6 +13,7 @@ export interface MockAccount {
   hash: string;
 }
 export interface MockState {
+  moderation?: import("./mock-moderation").MockModerationState;
   version: 1;
   profiles: Profile[];
   playlists: Playlist[];

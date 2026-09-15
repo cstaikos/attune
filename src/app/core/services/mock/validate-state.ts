@@ -100,6 +100,40 @@ const stateCheck = shape({
       expiresAt: nullable(text),
     }),
   ),
+  moderation: optional(
+    shape({
+      members: array(
+        shape({
+          user_id: text,
+          username: text,
+          status: member(["active", "suspended"]),
+          role: member(["member", "admin"]),
+        }),
+      ),
+      reports: array(
+        shape({
+          id: text,
+          reporter_id: text,
+          target_type: member(["playlist", "comment", "profile"]),
+          target_id: text,
+          reason: text,
+          status: member(["open", "resolved", "dismissed"]),
+          created_at: text,
+        }),
+      ),
+      audit: array(
+        shape({
+          id: text,
+          actor_id: text,
+          action: text,
+          target_id: text,
+          reason: text,
+          created_at: text,
+        }),
+      ),
+      hidden: array(text),
+    }),
+  ),
   session: nullable(shape({ userId: text })),
 });
 export function validateState(value: unknown): MockState {

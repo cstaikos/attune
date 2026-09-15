@@ -7,25 +7,22 @@
   </p>
   <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
     <fieldset [disabled]="action.busy()">
-      <label
-        >Email<input
-          formControlName="email"
-          type="email"
-          autocomplete="email"
-          required
-      /></label>
-      <label
-        >Password<input
-          formControlName="password"
-          type="password"
-          [attr.autocomplete]="joining() ? 'new-password' : 'current-password'"
-          minlength="8"
-          required
-      /></label>
-      <button class="primary-button" type="submit">
-        {{action.busy() ? 'Please wait…' : joining() ? 'Create account' : 'Sign
-        in'}}
-      </button>
+      <app-text-field
+        label="Email"
+        [control]="form.controls.email"
+        type="email"
+        autocomplete="email"
+      />
+      <app-text-field
+        label="Password"
+        [control]="form.controls.password"
+        type="password"
+        [autocomplete]="joining() ? 'new-password' : 'current-password'"
+        hint="Use at least 8 characters."
+      />
+      <app-button type="submit" [loading]="action.busy()">
+        {{ joining() ? 'Create account' : 'Sign in' }}
+      </app-button>
     </fieldset>
     <app-action-feedback [error]="action.error()" />
   </form>

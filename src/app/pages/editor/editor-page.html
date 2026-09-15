@@ -8,45 +8,46 @@
   <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="modal-header">
       <h2>{{id ? 'Edit playlist' : 'Add a playlist'}}</h2>
-      <a class="ghost-button" [routerLink]="cancelLink">Back</a>
+      <a matButton appButton="secondary" [routerLink]="cancelLink">Back</a>
     </div>
     <fieldset class="form-fields" [disabled]="action.busy()">
       <div class="form-grid two-column">
-        <label class="full-span"
-          >Title<input
+        <mat-form-field class="full-span"
+           appField="Title" #field1="appField"><mat-label>Title</mat-label><input
+            matInput
             formControlName="title"
             required
             maxlength="200"
             placeholder="Playlist title"
-        /></label>
+        /><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
         <fieldset class="duration-field">
           <legend>Duration</legend>
           <div class="duration-inputs">
-            <label
-              >Hours<input
+            <mat-form-field
+               appField="Hours" #field2="appField"><mat-label>Hours</mat-label><input
+                matInput
                 type="number"
                 formControlName="hours"
                 min="0"
                 step="1"
-                required /></label
-            ><label
-              >Minutes<input
+                required /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field><mat-form-field
+               appField="Minutes" #field3="appField"><mat-label>Minutes</mat-label><input
+                matInput
                 type="number"
                 formControlName="minutes"
                 min="0"
                 max="59"
                 step="1"
                 required
-            /></label>
+            /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field>
           </div>
         </fieldset>
-        <label class="modality-field"
-          >Modality<select formControlName="modality">
+        <mat-form-field class="modality-field"
+           appField="Modality" #field4="appField"><mat-label>Modality</mat-label><select matNativeControl formControlName="modality">
             @for(m of modalities;track m){
             <option [value]="m">{{m}}</option>
             }
-          </select></label
-        >
+          </select><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field>
         <fieldset class="field-group full-span" formArrayName="links">
           <legend>Playlist links</legend>
           <p class="field-hint">
@@ -56,16 +57,18 @@
           @for(control of form.controls.links.controls;track control;let
           i=$index){
           <div class="link-editor">
-            <label
-              >URL {{i+1}}<input
+            <mat-form-field
+               appField="URL {{i+1}}" #field5="appField"><mat-label>URL {{i+1}}</mat-label><input
+                matInput
                 type="url"
                 [formControlName]="i"
                 placeholder="https://…"
-            /></label>
+            /><mat-error>{{field5.validationMessage()}}</mat-error></mat-form-field>
             <span class="field-hint">{{linkLabel(control.value)}}</span>
             <button
+              matButton
+              appButton="text"
               type="button"
-              class="text-button"
               (click)="removeLink(i)"
               [disabled]="form.controls.links.length<=1"
             >
@@ -73,7 +76,12 @@
             </button>
           </div>
           }
-          <button type="button" class="ghost-button" (click)="addLink()">
+          <button
+            matButton
+            appButton="secondary"
+            type="button"
+            (click)="addLink()"
+          >
             Add another URL
           </button>
         </fieldset>
@@ -88,16 +96,14 @@
             @for(control of form.controls.energy.controls;track control;let
             i=$index){
             <div class="arc-control">
-              <label
-                >Point {{i+1}} · {{control.value}}<input
-                  type="range"
-                  [formControlName]="i"
-                  min="1"
-                  max="5"
-                  step="1" /></label
-              ><button
+              <app-slider
+                [control]="control"
+                label="Point {{i+1}}"
+                [disabled]="action.busy()"
+              /><button
+                matButton
+                appButton="text"
                 type="button"
-                class="text-button"
                 [disabled]="form.controls.energy.length<=2"
                 (click)="removePoint(i)"
               >
@@ -107,21 +113,23 @@
             }
           </div>
           <button
+            matButton
+            appButton="secondary"
             type="button"
-            class="ghost-button"
             [disabled]="form.controls.energy.length>=24"
             (click)="addPoint()"
           >
             Add point
           </button>
         </fieldset>
-        <label class="full-span"
-          >Notes<textarea
+        <mat-form-field class="full-span" appField="Notes" #field6="appField"><mat-label>Notes</mat-label>
+          <textarea
+            matInput
             formControlName="notes"
             rows="4"
             placeholder="Setting, pacing, transitions, facilitation notes"
           ></textarea>
-        </label>
+        <mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field>
       </div>
       <fieldset class="field-group">
         <legend>Music tags</legend>
@@ -133,8 +141,10 @@
           <legend>{{group.name}}</legend>
           <div class="pill-list">
             @for(tag of group.tags;track tag){<button
+              matButton
+              appButton="chip"
+              size="small"
               type="button"
-              class="pill-button"
               [class.active]="form.controls.qualities.value.includes(tag)"
               [attr.aria-pressed]="form.controls.qualities.value.includes(tag)"
               (click)="toggleTag(tag)"
@@ -146,8 +156,8 @@
         }
       </fieldset>
       <div class="modal-actions">
-        <a class="ghost-button" [routerLink]="cancelLink">Cancel</a
-        ><button class="primary-button" type="submit">
+        <a matButton appButton="secondary" [routerLink]="cancelLink">Cancel</a
+        ><button matButton appButton="primary" type="submit">
           {{action.busy() ? 'Saving…' : id ? 'Save changes' : 'Add playlist'}}
         </button>
       </div>

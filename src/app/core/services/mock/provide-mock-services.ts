@@ -4,6 +4,7 @@ import {
   makeEnvironmentProviders,
 } from "@angular/core";
 import {
+  MODERATION_SERVICE,
   AUTH_SERVICE,
   PLAYLIST_SERVICE,
   PROFILE_SERVICE,
@@ -19,8 +20,14 @@ import { MockProfiles } from "./mock-profiles";
 import { MockSocial } from "./mock-social";
 import { MockInvitations } from "./mock-invitations";
 export const MOCK_STORAGE = new InjectionToken<MockStorage>("MockStorage");
+import { MockModeration } from "./mock-moderation";
 export function provideMockServices(): EnvironmentProviders {
   return makeEnvironmentProviders([
+    {
+      provide: MODERATION_SERVICE,
+      useFactory: (store: MockStore) => new MockModeration(store),
+      deps: [MockStore],
+    },
     {
       provide: MOCK_STORAGE,
       useFactory: (): MockStorage => ({

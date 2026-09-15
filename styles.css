@@ -1164,9 +1164,9 @@ body { line-height: 1.5; }
 .toolbar-actions select { background: transparent; border-color: transparent; font-size: .875rem; }
 .filter-trigger { background: transparent; min-height: 38px; padding: 6px 16px; }
 .view-switch { display: flex; padding: 4px; background: #eeeee6; border-radius: 26px; gap: 2px; }
-.view-switch button { border: 0; background: transparent; border-radius: 22px; padding: 8px 14px; color: var(--muted); font-size: .875rem; }
-.view-switch button span { margin-right: 5px; }
-.view-switch button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px #343b3210; }
+.view-switch button:not(.app-ui-button) { border: 0; background: transparent; border-radius: 22px; padding: 8px 14px; color: var(--muted); font-size: .875rem; }
+.view-switch button:not(.app-ui-button) span { margin-right: 5px; }
+.view-switch button:not(.app-ui-button)[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px #343b3210; }
 .library-layout .playlist-grid { order: 3; }
 .playlist-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .playlist-card { grid-template-rows: 130px auto; min-height: 0; border-radius: 20px; border-color: #e8e5dc; box-shadow: none; }
@@ -1238,7 +1238,7 @@ body { line-height: 1.5; }
   .column-toolbar { gap: 16px; }
   .toolbar-actions { display: flex; justify-content: space-between; gap: 8px; width: 100%; }
   .toolbar-actions select { max-width: 52%; padding-left: 0; }
-  .view-switch button { padding: 8px 10px; }
+  .view-switch button:not(.app-ui-button) { padding: 8px 10px; }
   .playlist-grid { grid-template-columns: 1fr; gap: 20px; }
   .filters-panel { grid-template-columns: 1fr; padding: 20px; }
   .playlist-list { gap: 0; }

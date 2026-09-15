@@ -7,6 +7,7 @@ import {
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { environment } from "../../../../environments/environment";
 import {
+  MODERATION_SERVICE,
   AUTH_SERVICE,
   PROFILE_SERVICE,
   INVITATION_SERVICE,
@@ -19,8 +20,13 @@ import { SupabaseInvitations } from "./supabase-invitations";
 import { SupabaseSocial } from "./supabase-social";
 import { SupabasePlaylists } from "./supabase-playlists";
 export const SUPABASE = new InjectionToken<SupabaseClient>("Supabase");
+import { SupabaseModeration } from "./supabase-moderation";
 export function provideSupabaseServices() {
   return makeEnvironmentProviders([
+    {
+      provide: MODERATION_SERVICE,
+      useFactory: () => new SupabaseModeration(inject(SUPABASE)),
+    },
     {
       provide: SUPABASE,
       useFactory: () =>

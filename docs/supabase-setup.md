@@ -118,8 +118,110 @@ invitation, reads captured Mailpit email, exercises PKCE verification and recove
 checks authenticated adapters, and removes its database/account fixtures. It needs
 Docker access for provisioning its local invitation. Never point it at staging.
 
+The test also signs in a second account through a separate Supabase client, redeems
+the first account's invitation, and verifies shared playlist discovery, direct
+reads, edits visible after signing in again, comments, save counts, private saves,
+and rejection of edits/deletes by another member. The second account's email is
+confirmed through the local admin fixture; the first account exercises real local
+confirmation and recovery email delivery.
+
+### Two-device acceptance check
+
+After completing hosted staging setup, open the same deployed app on two devices
+and sign in with different active member accounts. On device A, publish a playlist
+with a distinctive title. On device B, open the library or click **Refresh
+playlists**, find that title, and open it. Both devices must show the same playlist
+URL, creator, and content. Save and comment on device B; reload the detail page on
+device A to see those changes. Edit on device A and reload on device B to verify
+the update persists. The library refresh preserves its current filters and sort;
+clear filters if the new playlist does not match them. Updates are fetched on
+navigation or refresh, rather than pushed live.
+
+The local integration test proves sharing across isolated account sessions; it
+does not replace this check on physical devices against the hosted deployment.
+
 The pinned CLI currently starts PostgREST 16.2. If fresh local JWTs fail with
 `PGRST303: JWT issued at future`, restarting `supabase_rest_attune-local` can clear
 the stale clock; upgrade the local stack to PostgREST 16.3 or later when supported
 by the CLI for the upstream fix. Do not weaken JWT checks or membership policies.
 See [PostgREST 16.3 release notes](https://github.com/PostgREST/postgrest/releases/tag/v16.3).
+
+### Reporting and administration
+
+Apply the moderation migrations with `npm run db:migrate` locally and your usual
+migration process for hosted environments. Members can report playlists, comments,
+and profiles privately. Only the reporter and active administrators can read a
+report; reported members have no access to another person's report.
+
+The first administrator must be provisioned by a trusted database operator after
+that person has joined and verified their email. In the SQL editor, replace the
+UUID below with that member's Auth user ID:
+
+```sql
+update private.memberships
+set role = 'admin'
+where user_id = '<verified-member-uuid>' and status = 'active';
+```
+
+After signing in again, **Administration** appears in the navigation at `/admin`.
+Administrators can review reports, hide or restore playlists and comments, close
+reports, suspend or restore accounts, and grant or revoke administrator access.
+Every action requires a reason and records the actor, target, timestamp, and
+before/after state in an audit table that application users cannot modify.
+Administrators cannot change their own access, preserving an active administrator.
+Use the application for subsequent access changes so they enter the audit trail;
+the initial database bootstrap is an operator action outside that trail.
+
+Suspension and administrator revocation are checked by the database on subsequent
+requests, including requests with previously issued tokens. Existing content
+already rendered in a browser is not remotely erased. Profile reports are handled
+through account suspension; playlist and comment hiding is reversible.
+
+Browser mock storage is for development only and is editable by anyone using that
+browser. No mock account receives administrator access automatically. The tests
+provision administrator fixtures explicitly; production permissions come solely
+from the private database membership table.
+
+### Local moderation demo data
+
+Resets load `supabase/seed-moderation.sql` alongside the bootstrap invitation.
+It adds three fictional accounts, four playlists, three comments, six reports
+(open, resolved, dismissed), and two hidden-content audit entries.
+Existing fixture rows and moderation decisions are preserved when rerun.
+
+Local sign-ins (all use password `Attune-local-2026!`):
+
+- `admin@attune.local`: administrator; includes an admin-submitted open report.
+- `maya@attune.local`: member with open and resolved reports on her profile.
+- `leo@attune.local`: member with a dismissed report on his profile.
+
+Playlist links are example placeholders. To add fixtures to an existing local
+database without resetting it:
+
+```sh
+docker exec -i supabase_db_attune-local psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/seed-moderation.sql
+```
+
+### Large local test dataset
+
+`supabase/seed-volume.sql` is included in local resets and can also be loaded with:
+
+```sh
+docker exec -i supabase_db_attune-local psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/seed-volume.sql
+```
+
+It adds 48 fictional members, 120 playlists across all six modalities, 396 comments
+(including a long thread on **Morning light · 1**), 120 private reports, audit history,
+120 listening notes, 360 saves, 88 follows, and 60 invitations in available, expired,
+and used states. It includes hidden playlists/comments, active/suspended accounts,
+and every moderation action. Existing records and decisions are preserved on reruns.
+
+The three primary demo logins above remain the easiest entry points. Additional
+accounts are `member1@attune.local` through `member48@attune.local`, using the same
+local-only password. Members 1–2 are administrators; 45–48 are suspended.
+Maya and the demo administrator have enough private reports and invitations to
+exercise pagination on their own profiles.
+
+List controls currently paginate loaded results in the browser. The service layer
+still retrieves the full accessible collection; large production datasets will
+need server-side filtering and pagination to reduce network transfer.

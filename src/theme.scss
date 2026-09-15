@@ -1,0 +1,140 @@
+@use "@angular/material" as mat;
+
+html {
+  @include mat.theme(
+    (
+      color: mat.$green-palette,
+      typography: (
+        plain-family: "Inter, ui-sans-serif, system-ui, sans-serif",
+        brand-family: "Inter, ui-sans-serif, system-ui, sans-serif",
+      ),
+      density: 0,
+    )
+  );
+  @include mat.theme-overrides(
+    (
+      primary: #64765b,
+      on-primary: #fffdf9,
+      primary-container: #e0e7d7,
+      on-primary-container: #343b32,
+      surface: #fffdf9,
+      on-surface: #343b32,
+      on-surface-variant: #717568,
+      outline: #717568,
+      outline-variant: #d4d7cb,
+      error: #a33e34,
+    )
+  );
+  --app-control-radius: 12px;
+  --app-control-height: 48px;
+  --app-space-sm: 8px;
+  --app-space-md: 16px;
+  --app-space-lg: 24px;
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 28px,
+      outlined-container-shape: 28px,
+      text-container-shape: 28px,
+      filled-container-height: var(--app-control-height),
+      outlined-container-height: var(--app-control-height),
+      text-container-height: var(--app-control-height),
+    )
+  );
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: var(--app-control-radius),
+    )
+  );
+}
+
+.app-control-small {
+  @include mat.button-overrides(
+    (
+      filled-container-height: 40px,
+      outlined-container-height: 40px,
+      text-container-height: 40px,
+    )
+  );
+}
+
+// Neutralize the prototype's native-control decorations at our wrapper boundary.
+app-text-field input[matInput][type],
+app-text-field textarea {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+  color: inherit;
+}
+
+// Public native controls inside our field boundary must not inherit prototype decorations.
+.app-ui-field.app-ui-field input[matInput],
+.app-ui-field.app-ui-field textarea[matInput],
+.app-ui-field.app-ui-field select[matNativeControl] {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  min-height: 0;
+  height: auto;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.app-ui-button[aria-pressed="true"] {
+  @include mat.button-overrides(
+    (
+      outlined-label-text-color: var(--mat-sys-on-primary-container),
+      outlined-outline-color: var(--mat-sys-primary),
+    )
+  );
+}
+.app-control-danger {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-error),
+      filled-label-text-color: var(--mat-sys-on-error),
+      text-label-text-color: var(--mat-sys-error),
+    )
+  );
+}
+.app-control-chip {
+  @include mat.button-overrides(
+    (
+      outlined-container-shape: 28px,
+    )
+  );
+}
+
+// Layout belongs to the screen; color, type, and control geometry belong to the UI layer.
+.app-ui-field {
+  min-width: 0;
+}
+.topbar-search .app-ui-field {
+  width: 100%;
+}
+.toolbar-actions .app-ui-field {
+  min-width: 160px;
+}
+.view-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.view-switch .app-ui-button {
+  border: 1px solid var(--mat-sys-outline);
+}
+.filter-section app-checkbox {
+  display: block;
+}
+.arc-control app-slider {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.comment-form .app-ui-field {
+  width: 100%;
+}
+.app-ui-button[aria-pressed="true"] {
+  background: var(--mat-sys-primary-container);
+}

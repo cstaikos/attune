@@ -19,14 +19,14 @@
     >
     @if(member.session()) {
     <form class="topbar-search" (ngSubmit)="searchLibrary()">
-      <label class="sr-only" for="global-search">Search playlists</label
-      ><input
-        id="global-search"
-        type="search"
-        name="search"
-        [(ngModel)]="search"
-        placeholder="Search the library"
-      /><button class="sr-only" type="submit">Search</button>
+      <mat-form-field
+         appField="Search playlists" #field1="appField"><mat-label>Search playlists</mat-label><input
+          matInput
+          id="global-search"
+          type="search"
+          name="search"
+          [(ngModel)]="search"
+          placeholder="Search the library" /><mat-error>{{field1.validationMessage()}}</mat-error><button matSuffix matButton appButton="text" size="small" type="submit">Search</button></mat-form-field>
     </form>
     }
     <div class="account-bar">
@@ -41,13 +41,15 @@
           ><span>{{member.profile.data()?.username}}</span>
         </div></a
       ><button
-        class="ghost-button small-button"
+        matButton
+        appButton="secondary"
+        size="small"
         [disabled]="action.busy()"
         (click)="signOut()"
       >
         Sign out</button
-      >}@else{<a class="ghost-button" routerLink="/login">Sign in</a
-      ><a class="primary-button" routerLink="/join">Join</a>}
+      >}@else{<a matButton appButton="secondary" routerLink="/login">Sign in</a
+      ><a matButton appButton="primary" routerLink="/join">Join</a>}
     </div>
   </header>
   @if(member.session()){
@@ -73,6 +75,9 @@
       ariaCurrentWhenActive="page"
       >Community</a
     >
+    @if(isAdmin()){<a routerLink="/admin" routerLinkActive="active"
+      >Administration</a
+    >}
   </nav>
   }
   <div class="shell-feedback">

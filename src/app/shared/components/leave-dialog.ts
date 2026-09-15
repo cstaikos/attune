@@ -1,3 +1,4 @@
+import { UI_BUTTONS } from "../ui/native-button";
 import {
   Component,
   effect,
@@ -8,6 +9,7 @@ import {
 import { ConfirmNavigation } from "../state/confirm-navigation";
 
 @Component({
+  imports: [...UI_BUTTONS],
   selector: "app-leave-dialog",
   template: `
     <dialog
@@ -21,13 +23,18 @@ import { ConfirmNavigation } from "../state/confirm-navigation";
         <p>{{ confirmation.message() }}</p>
         <div class="modal-actions">
           <button
-            class="ghost-button"
+            matButton
+            appButton="secondary"
             autofocus
             (click)="confirmation.answer(false)"
           >
             Keep editing
           </button>
-          <button class="primary-button" (click)="confirmation.answer(true)">
+          <button
+            matButton
+            appButton="primary"
+            (click)="confirmation.answer(true)"
+          >
             Discard changes
           </button>
         </div>

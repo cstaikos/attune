@@ -5,12 +5,14 @@
       <h2>{{routeData()['heading']}}</h2>
       <p>{{routeData()['description']}}</p>
     </div>
-    <a class="primary-button" routerLink="/create">+ Add a playlist</a>
+    <a matButton appButton="primary" routerLink="/create">+ Add a playlist</a>
   </header>
   <div class="column-toolbar">
     <div>
       <button
-        class="ghost-button filter-trigger"
+        matButton
+        appButton="secondary"
+        class="filter-trigger"
         [attr.aria-expanded]="filtersOpen()"
         aria-controls="library-filters"
         (click)="filtersOpen.set(!filtersOpen())"
@@ -19,26 +21,41 @@
       ><span role="status" class="result-count"
         >{{page.loading() ? 'Finding playlists…' :
         (page.data()?.playlists?.length ?? 0)+' playlists'}}</span
-      ><button class="text-button" (click)="clear()">Clear filters</button>
+      ><button matButton appButton="text" (click)="clear()">
+        Clear filters
+      </button>
     </div>
     <div class="toolbar-actions">
-      <label class="sr-only" for="sort">Sort playlists</label
-      ><select
-        id="sort"
-        [ngModel]="query().sort"
-        (ngModelChange)="setSort($event)"
+      <button
+        matButton
+        appButton="secondary"
+        [disabled]="page.loading()"
+        (click)="load(undefined, true)"
       >
-        <option value="newest">Newest</option>
-        <option value="favorites">Most saved</option>
-        <option value="comments">Most discussed</option>
-      </select>
+        Refresh playlists
+      </button>
+      <mat-form-field
+         appField="Sort playlists" #field1="appField"><mat-label>Sort playlists</mat-label><select
+          matNativeControl
+          id="sort"
+          [ngModel]="query().sort"
+          (ngModelChange)="setSort($event)"
+        >
+          <option value="newest">Newest</option>
+          <option value="favorites">Most saved</option>
+          <option value="comments">Most discussed</option>
+        </select><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
       <div class="view-switch" role="group" aria-label="Library view">
         <button
+          matButton
+          appButton="chip"
           [attr.aria-pressed]="layout()==='cards'"
           (click)="layout.set('cards')"
         >
           ▦ Cards</button
         ><button
+          matButton
+          appButton="chip"
           [attr.aria-pressed]="layout()==='list'"
           (click)="layout.set('list')"
         >
@@ -57,23 +74,23 @@
       [error]="page.error()"
       (retry)="load()"
     /><app-action-feedback [error]="action.error()" /> @if(page.data();as data){
-    <div class="playlist-grid" [class.playlist-list]="layout()==='list'">
-      @for(playlist of data.playlists;track playlist.id){<app-playlist-card
-        [playlist]="playlist"
-        [creator]="creator(playlist.creatorId)"
-        [saved]="data.saved.includes(playlist.id)"
-        [busy]="action.busy()"
-        (save)="save(playlist)"
-      />}@empty{
-      <div class="empty-state">
-        <h3>No playlists here yet.</h3>
-        <p>
-          Try another search, clear your filters, or add a playlist of your own.
-        </p>
-        <a class="ghost-button" routerLink="/create">Add a playlist</a>
-      </div>
-      }
-    </div>
+    <app-list-view
+      [items]="data.playlists"
+      label="Playlists"
+      [searchable]="false"
+      [resetKey]="query()"
+      [layout]="layout()==='list' ? 'playlist-grid playlist-list' : 'playlist-grid'"
+    >
+      <ng-template let-playlist>
+        <app-playlist-card
+          [playlist]="playlist"
+          [creator]="creator(playlist.creatorId)"
+          [saved]="data.saved.includes(playlist.id)"
+          [busy]="action.busy()"
+          (save)="save(playlist)"
+        />
+      </ng-template>
+    </app-list-view>
     }
   </div>
 </div>

@@ -1,0 +1,256 @@
+<section class="detail-page admin-page">
+  <p class="eyebrow">Community care</p>
+  <h2>Administration</h2>
+  <p>Review reports, manage visibility, and keep a record of every decision.</p>
+  <app-page-status
+    [loading]="page.loading()"
+    [error]="page.error()"
+    (retry)="load()"
+  />
+  <app-action-feedback [message]="action.message()" />
+  <nav class="admin-tabs" aria-label="Administration sections">
+    @for (tab of sections; track tab.key) {
+    <button
+      matButton
+      appButton="chip"
+      type="button"
+      [attr.aria-pressed]="section() === tab.key"
+      (click)="section.set(tab.key)"
+    >
+      {{ tab.label }}
+    </button>
+    }
+  </nav>
+  @if (page.data(); as data) { @if (section() === 'reports') {
+  <h3>Private reports</h3>
+  <app-list-view
+    [items]="data.reports"
+    label="Reports"
+    [filters]="reportFilters"
+    [searchText]="reportSearch"
+    emptyMessage="No reports to review."
+  >
+    <ng-template let-report>
+      <article>
+        <div class="report-meta">
+          <span class="status-badge">{{ report.status }}</span
+          ><span>{{ report.target_type }}</span
+          ><span>{{ report.created_at | date: "medium" }}</span>
+        </div>
+        @if (preview(report); as item) {
+        <h3><a [routerLink]="item.path">{{ item.title }}</a></h3>
+        }
+        <p>{{ report.reason }}</p>
+        <p class="report-meta">Reported by {{ name(report.reporter_id) }}</p>
+        @if (preview(report); as item) {
+        <details>
+          <summary>Content preview</summary>
+          <blockquote>{{ item.body }}</blockquote>
+        </details>
+        @if (report.target_type !== 'profile') {
+        <p class="report-meta">
+          {{ item.hidden ? 'Hidden from members' : 'Visible to members' }}
+        </p>
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act(item.hidden ? 'restore' : 'hide', report.target_type, report.target_id)"
+        >
+          {{ item.hidden ? 'Restore content' : 'Hide content…' }}
+        </button>
+        } } @else {
+        <p>The reported content is no longer available.</p>
+        } @if (report.status === 'open') {
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act('resolve', 'report', report.id)"
+        >
+          Resolve…
+        </button>
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act('dismiss', 'report', report.id)"
+        >
+          Dismiss…
+        </button>
+        }
+      </article>
+    </ng-template>
+  </app-list-view>
+  } @if (section() === 'hidden') {
+  <h3>Hidden content</h3>
+  <p>
+    Only administrators can see these items. Restore an item to make it
+    available to members.
+  </p>
+  <app-list-view
+    [items]="hiddenContent()"
+    label="Hidden items"
+    [filters]="hiddenFilters"
+    emptyMessage="No hidden content."
+  >
+    <ng-template let-item
+      ><article>
+        <span class="status-badge">Hidden {{ item.target }}</span>
+        <h3>
+          <a [routerLink]="['/playlist', item.playlistId]">{{ item.title }}</a>
+        </h3>
+        <p>{{ item.body }}</p>
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act('restore', item.target, item.id)"
+        >
+          Restore content…
+        </button>
+      </article></ng-template
+    >
+  </app-list-view>
+  } @if (section() === 'members') {
+  <h3>Accounts and permissions</h3>
+  <app-list-view
+    [items]="data.members"
+    label="Members"
+    [filters]="memberFilters"
+    [itemKey]="memberKey"
+  >
+    <ng-template let-member
+      ><article>
+        <h3>{{ member.username }}</h3>
+        <p>{{ member.status }} · {{ member.role }}</p>
+        @if (member.user_id === currentMember.session()?.userId) {
+        <p class="report-meta">
+          Your account · You cannot change your own access.
+        </p>
+        } @else {
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act(member.status === 'active' ? 'suspend' : 'unsuspend', 'member', member.user_id)"
+        >
+          {{ member.status === 'active' ? 'Suspend account…' : 'Restore
+          account…' }}
+        </button>
+        <button
+          matButton
+          appButton="secondary"
+          [disabled]="disabled()"
+          (click)="act(member.role === 'admin' ? 'revoke_admin' : 'grant_admin', 'member', member.user_id)"
+        >
+          {{ member.role === 'admin' ? 'Revoke administrator…' : 'Grant
+          administrator…' }}
+        </button>
+        }
+      </article></ng-template
+    >
+  </app-list-view>
+  } @if (section() === 'audit') {
+  <h3>Audit log</h3>
+  <p>Newest decisions first. Search by administrator, reason, or content ID.</p>
+  <app-list-view
+    [items]="data.audit"
+    label="Audit entries"
+    [filters]="auditFilters"
+    [searchText]="auditSearch"
+    emptyMessage="No administrative actions yet."
+  >
+    <ng-template let-entry
+      ><article>
+        <div class="report-meta">
+          <span class="status-badge">{{ actionLabel(entry.action) }}</span
+          ><span>{{ entry.created_at | date: "medium" }}</span>
+        </div>
+        <p>{{ entry.reason }}</p>
+        <p class="report-meta">
+          By {{ name(entry.actor_id) }} · {{ entry.target_type }}
+        </p>
+        <details>
+          <summary>View recorded change</summary>
+          <p>Content ID: {{ entry.target_id }}</p>
+          <h4>Before</h4>
+          <pre>{{ entry.before_state | json }}</pre>
+          <h4>After</h4>
+          <pre>{{ entry.after_state | json }}</pre>
+        </details>
+      </article></ng-template
+    >
+  </app-list-view>
+  } }
+</section>
+<dialog
+  #decision
+  class="workflow-dialog"
+  aria-label="Moderation decision"
+  (cancel)="cancelDecision($event)"
+>
+  @if (pending(); as item) {
+  <form ngNativeValidate (ngSubmit)="confirm()">
+    <p class="eyebrow">Moderation decision</p>
+    <h2>{{ actionLabel(item.action) }}</h2>
+    <p class="decision-context">{{ item.title }}</p>
+    @if (item.action === 'hide') {
+    <p>
+      This hides the content from members and resolves all open reports about
+      it. Administrators can still review and restore it.
+    </p>
+    } @if (item.action === 'restore') {
+    <p>
+      This restores the content. If its playlist is also hidden, restore that
+      playlist to make it visible to members. Closed reports remain closed.
+    </p>
+    } @if (item.action === 'suspend') {
+    <p>
+      This member will lose community access until their account is restored.
+    </p>
+    } @if (item.action === 'grant_admin') {
+    <p>
+      This member will be able to read private reports, moderate content, and
+      manage accounts.
+    </p>
+    }
+    <mat-form-field appField="Reason for this decision" #field1="appField"><mat-label>Reason for this decision</mat-label>
+      <textarea
+        matInput
+        name="reason"
+        [(ngModel)]="reason"
+        required
+        maxlength="2000"
+        rows="4"
+        autofocus
+        placeholder="Explain your decision for the audit log."
+        [disabled]="action.busy()"
+      ></textarea>
+    <mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+    <small
+      >Required. Saved with your name in the administrator audit log.</small
+    >
+    <app-action-feedback [error]="action.error()" />
+    <div class="dialog-actions">
+      <button
+        matButton
+        appButton="secondary"
+        type="button"
+        [disabled]="action.busy()"
+        (click)="decision.close()"
+      >
+        Cancel
+      </button>
+      <button
+        matButton
+        appButton="primary"
+        type="submit"
+        [disabled]="action.busy()"
+      >
+        {{ action.busy() ? 'Saving…' : actionLabel(item.action) }}
+      </button>
+    </div>
+  </form>
+  }
+</dialog>

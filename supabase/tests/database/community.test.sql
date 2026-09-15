@@ -29,9 +29,9 @@ reset role;
 
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
 set local role authenticated;
-select is((select count(*) from public.playlists),1::bigint,'Active members can read community content');
+select is((select count(*) from public.playlists where id='20000000-0000-0000-0000-000000000001'),1::bigint,'Active members can read community content');
 select lives_ok($$update public.playlists set title='Updated' where id='20000000-0000-0000-0000-000000000001'$$,'Creator can update playlist');
-select is((select title from public.playlists limit 1),'Updated','Owner update is persisted');
+select is((select title from public.playlists where id='20000000-0000-0000-0000-000000000001'),'Updated','Owner update is persisted');
 select throws_ok($$update public.playlists set creator_id='10000000-0000-0000-0000-000000000002'$$,'42501',null,'Cannot transfer ownership');
 select throws_ok($$update public.playlists set created_at=now()$$,'42501',null,'Cannot forge timestamps');
 select throws_ok($$update private.memberships set role='admin'$$,'42501',null,'Cannot promote oneself');
@@ -73,7 +73,7 @@ select throws_ok($$select public.redeem_invitation('wrong','new-user')$$,'22023'
 select throws_ok($$select public.redeem_invitation('expired-invite','new-user')$$,'22023',null,'Expired invitation rejected');
 select throws_ok($$select public.redeem_invitation('test-invite','alice')$$,'23505',null,'Duplicate username rolls back redemption');
 select lives_ok($$select public.redeem_invitation('test-invite','new-user')$$,'Verified user can redeem unused invitation after failed profile insert');
-select is((select count(*) from public.playlists),1::bigint,'Redeemed member gains community access');
+select is((select count(*) from public.playlists where id='20000000-0000-0000-0000-000000000001'),1::bigint,'Redeemed member gains community access');
 select is((select role from public.my_membership()),'member','Redemption grants only member role');
 reset role;
 
@@ -100,7 +100,7 @@ update private.memberships set status='active',invites_remaining=0 where user_id
 set local role authenticated;
 select throws_ok('select public.create_invitation()','42501',null,'Cannot exceed invitation allowance');
 select lives_ok($$delete from public.playlists where id='20000000-0000-0000-0000-000000000001'$$,'Owner can delete own playlist');
-select is((select count(*) from public.listening_reports),0::bigint,'Deleting playlist cleans related listening reports');
+select is((select count(*) from public.listening_reports where playlist_id='20000000-0000-0000-0000-000000000001'),0::bigint,'Deleting playlist cleans related listening reports');
 select is((select count(*) from public.saved_playlists),0::bigint,'Deleting playlist cleans saves');
 reset role;
 select * from finish();

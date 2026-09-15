@@ -388,7 +388,7 @@ textarea {
   border-radius: 8px;
   padding: 3px;
 }
-.view-switch button {
+.view-switch button:not(.app-ui-button) {
   border-radius: 6px;
 }
 .filter-trigger {

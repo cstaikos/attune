@@ -1,3 +1,5 @@
+import { UI_FIELDS } from "../../shared/ui/field";
+import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -8,7 +10,13 @@ import { ActionFeedback } from "../../shared/components/action-feedback";
 
 @Component({
   selector: "app-account-page",
-  imports: [ReactiveFormsModule, RouterLink, ActionFeedback],
+  imports: [
+    ...UI_BUTTONS,
+    ...UI_FIELDS,
+    ReactiveFormsModule,
+    RouterLink,
+    ActionFeedback,
+  ],
   templateUrl: "./account-page.html",
 })
 export class AccountPage {

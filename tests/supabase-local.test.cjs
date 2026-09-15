@@ -12,7 +12,7 @@ const { SupabaseInvitations } = require('../.angular/mock-tests/services/supabas
 const { SupabasePlaylists } = require('../.angular/mock-tests/services/supabase/supabase-playlists');
 const { SupabaseSocial } = require('../.angular/mock-tests/services/supabase/supabase-social');
 
-test('local Auth delivers confirmation and recovery emails, verifies PKCE, and changes the password', { skip: !process.env.ATTUNE_LOCAL_STATUS }, async () => {
+test('local Supabase verifies Auth and shares published playlists between independent accounts', { skip: !process.env.ATTUNE_LOCAL_STATUS }, async () => {
   const config = JSON.parse(readFileSync(process.env.ATTUNE_LOCAL_STATUS, 'utf8'));
   assert.equal(config.API_URL, 'http://127.0.0.1:54321');
   const inbox = config.MAILPIT_URL;
@@ -24,6 +24,9 @@ test('local Auth delivers confirmation and recovery emails, verifies PKCE, and c
   const password = 'Local-test-password-123';
   const invitation = randomBytes(32).toString('hex');
   let accountId;
+  let readerId;
+  const readerClient = createClient(config.API_URL, config.PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const readerAuth = new SupabaseAuth(readerClient, 'http://localhost:4200');
   function sql(input) {
     return execFileSync('docker', ['exec', '-i', 'supabase_db_attune-local', 'psql', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'], { input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   }
@@ -70,21 +73,44 @@ test('local Auth delivers confirmation and recovery emails, verifies PKCE, and c
     assert.match(created.code, /^[0-9a-f]{64}$/);
     assert.equal((await invitations.listMine())[0].code, undefined, 'Invitation history never reveals codes');
     assert.equal((await profiles.get(accountId)).inviteCount, 2);
+    const readerEmail = `reader-test-${randomBytes(8).toString('hex')}@example.test`;
+    const readerAccount = await admin.auth.admin.createUser({ email: readerEmail, password, email_confirm: true });
+    assert.equal(readerAccount.error, null);
+    readerId = readerAccount.data.user.id;
+    await readerAuth.signIn({ email: readerEmail, password });
+    await readerAuth.redeemInvitation({ inviteCode: created.code, username: `reader-${randomBytes(8).toString('hex')}`, practice: 'Reader practice' });
+    const readerPlaylists = new SupabasePlaylists(readerClient, new SupabaseProfiles(readerClient));
+    const readerSocial = new SupabaseSocial(readerClient);
     await profiles.updateMine({ displayName: 'Integration test', practice: 'Test', location: '', bio: '' });
     const draft = { title: 'Integration playlist', modality: 'Meditation', duration: '30m', energyCurve: [1,2,1], qualities: ['ambient'], listeningReviewed: true, listeningContext: '', creatorWarningLabels: ['explicit language'], notes: '', links: { other: 'https://example.com/music' }, tracks: [] };
     const playlist = await playlists.create(draft);
     assert.deepEqual(playlist.creatorWarningLabels, ['explicit language']);
+    assert.deepEqual(await readerPlaylists.get(playlist.id), playlist, 'Independent accounts read the same published playlist');
+    assert.ok((await readerPlaylists.list()).some(item => item.id === playlist.id), 'Publication appears in the second account library');
+    assert.ok(!(await readerPlaylists.list({ view: 'contributions' })).some(item => item.id === playlist.id));
+    await assert.rejects(readerPlaylists.update(playlist.id, { ...draft, title: 'Unauthorized edit' }), /not found or not owned/i);
+    await assert.rejects(readerPlaylists.delete(playlist.id));
     await social.setSaved(playlist.id, true);
     await social.setSaved(playlist.id, true);
     assert.deepEqual(await social.savedIds(), [playlist.id]);
     assert.equal((await playlists.list({ view: 'saved' }))[0].savedCount, 1);
+    assert.deepEqual(await readerSocial.savedIds(), [], 'Personal saves remain private');
+    await readerSocial.setSaved(playlist.id, true);
+    assert.equal((await playlists.get(playlist.id)).savedCount, 2);
+    await readerPlaylists.addComment(playlist.id, 'Second account comment');
     await playlists.addComment(playlist.id, 'Integration comment');
     const edited = await playlists.update(playlist.id, { ...draft, title: 'Edited integration playlist', creatorWarningLabels: [] });
-    assert.equal(edited.comments[0].body, 'Integration comment');
+    assert.ok(edited.comments.some(item => item.body === 'Integration comment'));
+    assert.ok(edited.comments.some(item => item.userId === readerId && item.body === 'Second account comment'));
     assert.deepEqual(edited.creatorWarningLabels, []);
+    await readerAuth.signOut();
+    await readerAuth.signIn({ email: readerEmail, password });
+    assert.deepEqual(await readerPlaylists.get(playlist.id), edited, 'Server data survives an independent session restart');
     await playlists.delete(playlist.id);
     assert.deepEqual(await social.savedIds(), []);
-    await assert.rejects(auth.completeCallback(confirmation.searchParams.get('code')), /invalid or expired/);
+    assert.deepEqual(await readerSocial.savedIds(), []);
+    await assert.rejects(readerPlaylists.get(playlist.id));
+    await assert.rejects(auth.completeCallback(confirmation.searchParams.get('code')), /Automatic sign-in could not finish/);
     await auth.signOut();
     assert.equal(await auth.getAccess(), null);
     await auth.signIn({ email, password });
@@ -100,6 +126,19 @@ test('local Auth delivers confirmation and recovery emails, verifies PKCE, and c
     await auth.signOut();
   } finally {
     auth.destroy();
+    readerAuth.destroy();
+    if (readerId) {
+      assert.match(readerId, /^[0-9a-f-]{36}$/);
+      sql(`begin;
+        delete from public.playlist_comments where user_id='${readerId}';
+        delete from public.saved_playlists where user_id='${readerId}';
+        delete from private.invitations where redeemed_by='${readerId}';
+        delete from public.profiles where id='${readerId}';
+        delete from private.memberships where user_id='${readerId}';
+        commit;`);
+      const { error } = await admin.auth.admin.deleteUser(readerId);
+      assert.equal(error, null);
+    }
     if (accountId) {
       assert.match(accountId, /^[0-9a-f-]{36}$/);
       sql(`begin;

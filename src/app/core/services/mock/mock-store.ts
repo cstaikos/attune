@@ -60,10 +60,26 @@ export class MockStore {
 export function requireUser(state: MockState): string {
   if (!state.session)
     throw new ServiceError("unauthenticated", "Sign in to continue.");
+  if (
+    state.moderation?.members.some(
+      (m) => m.user_id === state.session!.userId && m.status === "suspended",
+    )
+  )
+    throw new ServiceError("forbidden", "Your account is suspended.");
   return state.session.userId;
+}
+export function canViewHidden(state: MockState): boolean {
+  return !!state.moderation?.members.some(
+    (m) =>
+      m.user_id === state.session?.userId &&
+      m.status === "active" &&
+      m.role === "admin",
+  );
 }
 export function findPlaylist(state: MockState, id: string) {
   const playlist = state.playlists.find((item) => item.id === id);
+  if (!canViewHidden(state) && state.moderation?.hidden.includes(id))
+    throw new ServiceError("not-found", "Playlist not found.");
   if (!playlist) throw new ServiceError("not-found", "Playlist not found.");
   return playlist;
 }

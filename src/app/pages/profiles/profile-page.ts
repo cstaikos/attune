@@ -1,6 +1,11 @@
+import { UI_FIELDS } from "../../shared/ui/field";
+import { UI_BUTTONS } from "../../shared/ui/native-button";
+import { ListView } from "../../shared/components/list-view";
+import { ReportsPage } from "../admin/reports-page";
+import { PrivateReportComponent } from "../../shared/components/private-report";
 import { Component, effect, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
   PLAYLIST_SERVICE,
@@ -18,8 +23,12 @@ import { PlaylistCard } from "../../shared/components/playlist-card";
 @Component({
   selector: "app-profile-page",
   imports: [
+    ...UI_BUTTONS,
+    ...UI_FIELDS,
+    ListView,
+    PrivateReportComponent,
+    ReportsPage,
     ReactiveFormsModule,
-    RouterLink,
     PageStatus,
     ActionFeedback,
     PlaylistCard,

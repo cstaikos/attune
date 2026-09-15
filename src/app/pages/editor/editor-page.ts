@@ -1,3 +1,6 @@
+import { AppSlider } from "../../shared/ui/slider";
+import { UI_FIELDS } from "../../shared/ui/field";
+import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { Component, effect, HostListener, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -20,6 +23,9 @@ import { EnergyChart } from "../../shared/components/energy-chart";
 @Component({
   selector: "app-editor-page",
   imports: [
+    AppSlider,
+    ...UI_BUTTONS,
+    ...UI_FIELDS,
     ReactiveFormsModule,
     RouterLink,
     TitleCasePipe,

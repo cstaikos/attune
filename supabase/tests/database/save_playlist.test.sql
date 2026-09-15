@@ -39,7 +39,22 @@ select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000001'
 set local role authenticated;
 select lives_ok($$select public.save_playlist((select id from public.playlists where title='Atomic playlist'),(select value from test_draft),'{}')$$,'Owner can remove own labels');
 select is((select count(*) from public.listening_reports where user_id=auth.uid()),0::bigint,'Own labels removed');
-select is((select context from public.listening_reports where user_id<>'30000000-0000-0000-0000-000000000001'),'Other member context','Other members reports survive editing');
+select is((select context from public.listening_reports where user_id='30000000-0000-0000-0000-000000000002'),'Other member context','Other members reports survive editing');
+-- Match the editor payload, including two links from the same provider.
+select lives_ok($$select public.save_playlist(null,
+ (select value || '{"title":"Multiple editor links","links":{"url0":"https://open.spotify.com/playlist/first","url1":"https://open.spotify.com/playlist/second","url2":"https://example.com/music"}}'::jsonb from test_draft),'{}')$$,
+ 'Editor indexed links can create a playlist');
+select is((select links->>'url1' from public.playlists where title='Multiple editor links'),'https://open.spotify.com/playlist/second','Second link from the same provider is preserved');
+select lives_ok($$select public.save_playlist((select id from public.playlists where title='Multiple editor links'),
+ (select value || '{"title":"Multiple editor links","links":{"url0":"https://www.youtube.com/playlist?list=PLtest","url1":"https://example.org/music"}}'::jsonb from test_draft),'{}')$$,
+ 'Editor indexed links can update a playlist');
+select is((select links->>'url1' from public.playlists where title='Multiple editor links'),'https://example.org/music','Updated indexed link persists');
+select ok(private.valid_playlist_links('{"spotify":"https://open.spotify.com/playlist/old"}'),'Legacy provider keys remain valid');
+select ok(not private.valid_playlist_links('{"url0":"javascript:alert(1)"}'),'Indexed keys do not permit unsafe URL schemes');
+select ok(not private.valid_playlist_links('{"url0":42}'),'Indexed values must be strings');
+select ok(not private.valid_playlist_links('{"unexpected":"https://example.com/"}'),'Unrecognized key format is rejected');
+select ok(not private.valid_playlist_links('{}'),'An empty link object remains invalid');
+select ok(not private.valid_playlist_links(jsonb_build_object('url0','https://example.com/' || repeat('x',2048))),'Link length remains bounded');
 reset role;
 update private.memberships set status='suspended' where user_id='30000000-0000-0000-0000-000000000001';
 set local role authenticated;

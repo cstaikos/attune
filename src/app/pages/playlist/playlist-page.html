@@ -9,6 +9,11 @@
 </div>
 } @if(page.data();as data){
 <article class="detail-page playlist-detail">
+  @if(data.playlist.hidden){
+  <p role="status">
+    Hidden from members · Visible to administrators for review.
+  </p>
+  }
   <div class="detail-hero">
     <div
       class="detail-cover large-cover"
@@ -30,7 +35,9 @@
           </div>
         </div>
         <button
-          class="save-button"
+          matButton
+          appButton="chip"
+          size="small"
           [class.active]="data.saved.includes(data.playlist.id)"
           [attr.aria-pressed]="data.saved.includes(data.playlist.id)"
           [disabled]="action.busy()"
@@ -41,7 +48,9 @@
       </div>
       <div class="playlist-primary-actions">
         @for(link of links();track link.href){<a
-          class="primary-button service-link"
+          matButton
+          appButton="primary"
+          class="service-link"
           [attr.data-service]="link.key"
           [href]="link.href"
           target="_blank"
@@ -50,11 +59,14 @@
         >}@empty{
         <p class="field-hint">No link added yet.</p>
         } @if(data.playlist.creatorId===member.session()?.userId){<a
-          class="ghost-button"
+          matButton
+          appButton="secondary"
           [routerLink]="['/edit',data.playlist.id]"
           >Edit playlist</a
         ><button
-          class="text-button danger-button"
+          matButton
+          appButton="text"
+          tone="danger"
           [disabled]="action.busy()"
           (click)="deleting.set(true)"
         >
@@ -70,13 +82,16 @@
         <h3 id="delete-heading">Delete {{data.playlist.title}}?</h3>
         <p>This removes its comments and saves.</p>
         <button
-          class="ghost-button"
+          matButton
+          appButton="secondary"
           [disabled]="action.busy()"
           (click)="deleting.set(false)"
         >
           Keep playlist</button
         ><button
-          class="primary-button danger-button"
+          matButton
+          appButton="primary"
+          tone="danger"
           [disabled]="action.busy()"
           (click)="remove()"
         >
@@ -113,34 +128,49 @@
       <section class="detail-section">
         <h3>Notes</h3>
         <p class="notes">{{data.playlist.notes || 'No notes added yet.'}}</p>
+        @if(!data.playlist.hidden){<app-private-report
+          target="playlist"
+          [targetId]="data.playlist.id"
+        />}
       </section>
       <section class="detail-section comments-section">
         <h3>Comments</h3>
-        <div class="comment-list">
-          @for(comment of data.playlist.comments;track comment.id){
-          <div class="comment">
-            <a [routerLink]="['/profile',comment.userId]"
-              ><strong>{{name(comment.userId)}}</strong></a
-            >
-            <p>{{comment.body}}</p>
-          </div>
-          }@empty{
-          <p>No comments yet.</p>
-          }
-        </div>
+        <app-list-view
+          [items]="data.playlist.comments"
+          label="Comments"
+          layout="comment-list"
+          [resetKey]="data.playlist.id + commentVersion()"
+          emptyMessage="No comments yet."
+        >
+          <ng-template let-comment>
+            <div class="comment">
+              <a [routerLink]="['/profile',comment.userId]"
+                ><strong>{{name(comment.userId)}}</strong></a
+              >
+              <p>{{comment.body}}</p>
+              @if(data.playlist.hidden || comment.hidden){
+              <p>Hidden from members · Administrator review</p>
+              } @else {
+              <app-private-report target="comment" [targetId]="comment.id" />
+              }
+            </div>
+          </ng-template>
+        </app-list-view>
         <form class="comment-form" (ngSubmit)="addComment()">
-          <label for="comment">Add comment</label
-          ><textarea
-            id="comment"
-            name="comment"
-            [(ngModel)]="comment"
-            required
-            maxlength="5000"
-            placeholder="Share context, thoughts, or adaptations"
-            [disabled]="action.busy()"
-          ></textarea
-          ><button
-            class="primary-button"
+          <mat-form-field appField="Add comment" #field1="appField"><mat-label>Add comment</mat-label>
+            <textarea
+              matInput
+              id="comment"
+              name="comment"
+              [(ngModel)]="comment"
+              required
+              maxlength="5000"
+              placeholder="Share context, thoughts, or adaptations"
+              [disabled]="action.busy()"
+            ></textarea><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field><button
+            matButton
+            appButton="primary"
+            type="submit"
             [disabled]="action.busy() || !comment.trim()"
           >
             Post comment</button

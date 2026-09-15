@@ -6,7 +6,12 @@ import {
 import { ListeningReport, Playlist } from "../../models/library";
 import { listeningGroups } from "../../models/taxonomy";
 import { ServiceError } from "../service-error";
-import { findPlaylist, MockStore, requireUser } from "./mock-store";
+import {
+  canViewHidden,
+  findPlaylist,
+  MockStore,
+  requireUser,
+} from "./mock-store";
 import { cleanDraft } from "../../utils/playlist-draft";
 import { queryPlaylists } from "../../utils/playlist-query";
 function requireOwner(playlist: Playlist, userId: string): void {
@@ -26,13 +31,45 @@ export class MockPlaylists implements PlaylistService {
   constructor(private readonly store: MockStore) {}
   list(query: PlaylistQuery = {}) {
     return this.store.read("playlists.list", (s) =>
-      queryPlaylists(s, requireUser(s), query),
+      queryPlaylists(
+        {
+          ...s,
+          playlists: s.playlists
+            .filter(
+              (p) => canViewHidden(s) || !s.moderation?.hidden.includes(p.id),
+            )
+            .map((p) => ({
+              ...p,
+              hidden: !!s.moderation?.hidden.includes(p.id),
+              comments: p.comments
+                .map((c) => ({
+                  ...c,
+                  hidden: !!s.moderation?.hidden.includes(c.id),
+                }))
+                .filter(
+                  (c) =>
+                    canViewHidden(s) || !s.moderation?.hidden.includes(c.id),
+                ),
+            })),
+        },
+        requireUser(s),
+        query,
+      ),
     );
   }
   get(id: string) {
     return this.store.read("playlists.get", (s) => {
       requireUser(s);
-      return findPlaylist(s, id);
+      const p = findPlaylist(s, id);
+      return {
+        ...p,
+        hidden: !!s.moderation?.hidden.includes(p.id),
+        comments: p.comments
+          .map((c) => ({ ...c, hidden: !!s.moderation?.hidden.includes(c.id) }))
+          .filter(
+            (c) => canViewHidden(s) || !s.moderation?.hidden.includes(c.id),
+          ),
+      };
     });
   }
   create(input: PlaylistDraft) {

@@ -1,5 +1,7 @@
+import { UI_BUTTONS } from "../ui/native-button";
 import { Component, input, output } from "@angular/core";
 @Component({
+  imports: [...UI_BUTTONS],
   selector: "app-page-status",
   template: `
     @if (loading()) {
@@ -8,7 +10,9 @@ import { Component, input, output } from "@angular/core";
     @if (error()) {
       <div class="page-status">
         <p role="alert">{{ error() }}</p>
-        <button class="ghost-button" (click)="retry.emit()">Try again</button>
+        <button matButton appButton="secondary" (click)="retry.emit()">
+          Try again
+        </button>
       </div>
     }
   `,

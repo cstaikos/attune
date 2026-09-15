@@ -25,6 +25,7 @@ export interface Track {
 }
 
 export interface PlaylistComment {
+  hidden?: boolean;
   id: string;
   userId: UserId;
   body: string;
@@ -40,6 +41,7 @@ export interface ListeningReport {
 
 /** Current taxonomy only. Legacy browser data will need a migration at the service boundary. */
 export interface Playlist {
+  hidden?: boolean;
   id: PlaylistId;
   creatorId: UserId;
   title: string;

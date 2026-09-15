@@ -1,3 +1,4 @@
+import { adminGuard } from "./core/auth/admin.guard";
 import { Routes } from "@angular/router";
 import { memberGuard } from "./core/auth/member.guard";
 import { editorLeaveGuard } from "./core/auth/editor-leave.guard";
@@ -8,6 +9,14 @@ const editor = () =>
   import("./pages/editor/editor-page").then((m) => m.EditorPage);
 export const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "library" },
+  {
+    path: "ui-showcase",
+    title: "UI components · Attune",
+    loadComponent: () =>
+      import("./pages/ui-showcase/ui-showcase-page").then(
+        (m) => m.UiShowcasePage,
+      ),
+  },
   { path: "login", title: "Sign in · Attune", loadComponent: auth },
   ...[
     { path: "auth/callback", mode: "callback", title: "Verify email" },
@@ -32,6 +41,19 @@ export const routes: Routes = [
     path: "",
     canActivateChild: [memberGuard],
     children: [
+      {
+        path: "reports",
+        title: "My private reports · Attune",
+        loadComponent: () =>
+          import("./pages/admin/reports-page").then((m) => m.ReportsPage),
+      },
+      {
+        path: "admin",
+        title: "Administration · Attune",
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import("./pages/admin/admin-page").then((m) => m.AdminPage),
+      },
       {
         path: "library",
         title: "Library · Attune",

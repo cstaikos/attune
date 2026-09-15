@@ -18,10 +18,7 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "styles": [
-              "styles.css",
-              "src/styles.css"
-            ],
+            "styles": ["styles.css", "src/styles.css", "src/theme.scss"],
             "assets": [
               {
                 "glob": "**/*",
@@ -56,6 +53,17 @@
                   "with": "src/environments/environment.local.ts"
                 }
               ]
+            },
+            "ui-preview": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/app.config.ts",
+                  "with": "tests/ui/app.config.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -71,6 +79,9 @@
             },
             "local": {
               "buildTarget": "resonance:build:local"
+            },
+            "ui-preview": {
+              "buildTarget": "resonance:build:ui-preview"
             }
           },
           "defaultConfiguration": "development"

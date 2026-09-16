@@ -1,6 +1,3 @@
-@if(playlist().hidden){
-<p>Hidden from members · Administrator review</p>
-}
 <article class="playlist-card">
   <a
     class="cover-art"
@@ -8,7 +5,13 @@
     [attr.aria-label]="'Open '+playlist().title"
     [style.--cover-a]="playlist().coverA"
     [style.--cover-b]="playlist().coverB"
-  ></a>
+  >
+    <app-energy-chart
+      class="cover-energy-arc"
+      [values]="playlist().energyCurve"
+      [mini]="true"
+    />
+  </a>
   <div class="card-body">
     <div class="card-identity">
       <div class="playlist-modality">
@@ -41,9 +44,6 @@
           {{saved() ? 'Saved' : 'Save'}}
         </button>
       </div>
-    </div>
-    <div class="mini-chart-wrap">
-      <app-energy-chart [values]="playlist().energyCurve" [mini]="true" />
     </div>
     <div class="tag-row">
       @for (tag of playlist().qualities.slice(0,3); track tag) {

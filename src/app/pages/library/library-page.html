@@ -1,12 +1,4 @@
 <div class="library-layout">
-  <header class="library-intro">
-    <div>
-      <p class="eyebrow">Music for meaningful sessions</p>
-      <h2>{{routeData()['heading']}}</h2>
-      <p>{{routeData()['description']}}</p>
-    </div>
-    <a matButton appButton="primary" routerLink="/create">+ Add a playlist</a>
-  </header>
   <div class="column-toolbar">
     <div>
       <button
@@ -25,15 +17,29 @@
         Clear filters
       </button>
     </div>
-    <div class="toolbar-actions">
-      <button
-        matButton
-        appButton="secondary"
-        [disabled]="page.loading()"
-        (click)="load(undefined, true)"
+    <form class="library-search" role="search" (ngSubmit)="searchLibrary()">
+      <mat-form-field appField="Search playlists" #searchField="appField"
+        ><mat-label>Search playlists</mat-label
+        ><input
+          matInput
+          id="global-search"
+          type="search"
+          name="search"
+          [(ngModel)]="search"
+          placeholder="Search the library"
+        /><mat-error>{{searchField.validationMessage()}}</mat-error
+        ><button
+          matSuffix
+          matButton
+          appButton="text"
+          size="small"
+          type="submit"
+        >
+          Search
+        </button></mat-form-field
       >
-        Refresh playlists
-      </button>
+    </form>
+    <div class="toolbar-actions">
       <mat-form-field appField="Sort playlists" #field1="appField"
         ><mat-label>Sort playlists</mat-label
         ><select
@@ -47,23 +53,7 @@
           <option value="comments">Most discussed</option></select
         ><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field
       >
-      <div class="view-switch" role="group" aria-label="Library view">
-        <button
-          matButton
-          appButton="chip"
-          [attr.aria-pressed]="layout()==='cards'"
-          (click)="layout.set('cards')"
-        >
-          ▦ Cards</button
-        ><button
-          matButton
-          appButton="chip"
-          [attr.aria-pressed]="layout()==='list'"
-          (click)="layout.set('list')"
-        >
-          ☰ List
-        </button>
-      </div>
+      <a matButton appButton="primary" routerLink="/create">+ Add a playlist</a>
     </div>
   </div>
   @if(filtersOpen()){<app-library-filters
@@ -81,7 +71,7 @@
       label="Playlists"
       [searchable]="false"
       [resetKey]="query()"
-      [layout]="layout()==='list' ? 'playlist-grid playlist-list' : 'playlist-grid'"
+      layout="playlist-grid"
     >
       <ng-template let-playlist>
         <app-playlist-card

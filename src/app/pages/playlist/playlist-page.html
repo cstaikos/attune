@@ -9,11 +9,6 @@
 </div>
 } @if(page.data();as data){
 <article class="detail-page playlist-detail">
-  @if(data.playlist.hidden){
-  <p role="status">
-    Hidden from members · Visible to administrators for review.
-  </p>
-  }
   <div class="detail-hero">
     <div
       class="detail-cover large-cover"
@@ -31,20 +26,26 @@
           <div class="detail-stats">
             <span>{{data.playlist.duration}}</span
             ><span>{{data.playlist.savedCount}} saved</span
-            ><span>{{data.playlist.comments.length}} comments</span>
+            ><span>{{visibleComments().length}} comments</span>
           </div>
         </div>
-        <button
-          matButton
-          appButton="chip"
-          size="small"
-          [class.active]="data.saved.includes(data.playlist.id)"
-          [attr.aria-pressed]="data.saved.includes(data.playlist.id)"
-          [disabled]="action.busy()"
-          (click)="save()"
-        >
-          {{data.saved.includes(data.playlist.id) ? 'Saved' : 'Save'}}
-        </button>
+        <div class="playlist-title-actions">
+          <button
+            matButton
+            appButton="chip"
+            size="small"
+            [class.active]="data.saved.includes(data.playlist.id)"
+            [attr.aria-pressed]="data.saved.includes(data.playlist.id)"
+            [disabled]="action.busy()"
+            (click)="save()"
+          >
+            {{data.saved.includes(data.playlist.id) ? 'Saved' : 'Save'}}
+          </button>
+          @if(!data.playlist.hidden){<app-private-report
+            target="playlist"
+            [targetId]="data.playlist.id"
+          />}
+        </div>
       </div>
       <div class="playlist-primary-actions">
         @for(link of links();track link.href){<a
@@ -128,15 +129,12 @@
       <section class="detail-section">
         <h3>Notes</h3>
         <p class="notes">{{data.playlist.notes || 'No notes added yet.'}}</p>
-        @if(!data.playlist.hidden){<app-private-report
-          target="playlist"
-          [targetId]="data.playlist.id"
-        />}
       </section>
       <section class="detail-section comments-section">
         <h3>Comments</h3>
         <app-list-view
-          [items]="data.playlist.comments"
+          [items]="visibleComments()"
+          [searchable]="false"
           label="Comments"
           layout="comment-list"
           [resetKey]="data.playlist.id + commentVersion()"
@@ -147,16 +145,19 @@
               <a [routerLink]="['/profile',comment.userId]"
                 ><strong>{{name(comment.userId)}}</strong></a
               >
+              @if(comment.createdAt){
+              <time [attr.datetime]="comment.createdAt">
+                {{comment.createdAt | date:'medium'}}
+              </time>
+              }
               <p>{{comment.body}}</p>
-              @if(data.playlist.hidden || comment.hidden){
-              <p>Hidden from members · Administrator review</p>
-              } @else {
+              @if(!data.playlist.hidden){
               <app-private-report target="comment" [targetId]="comment.id" />
               }
             </div>
           </ng-template>
         </app-list-view>
-        <form class="comment-form" (ngSubmit)="addComment()">
+        <form class="comment-form" #commentForm="ngForm" (ngSubmit)="addComment(commentForm)">
           <mat-form-field appField="Add comment" #field1="appField"
             ><mat-label>Add comment</mat-label>
             <textarea

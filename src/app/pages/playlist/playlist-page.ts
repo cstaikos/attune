@@ -3,8 +3,8 @@ import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { ListView } from "../../shared/components/list-view";
 import { PrivateReportComponent } from "../../shared/components/private-report";
 import { Component, computed, effect, inject, signal } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { TitleCasePipe } from "@angular/common";
+import { FormsModule, NgForm } from "@angular/forms";
+import { DatePipe, TitleCasePipe } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import {
@@ -29,12 +29,20 @@ import { EnergyChart } from "../../shared/components/energy-chart";
     PrivateReportComponent,
     FormsModule,
     RouterLink,
+    DatePipe,
     TitleCasePipe,
     PageStatus,
     ActionFeedback,
     EnergyChart,
   ],
   templateUrl: "./playlist-page.html",
+  styles: `
+    .comment time {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+  `,
 })
 export class PlaylistPage {
   private readonly playlists = inject(PLAYLIST_SERVICE);
@@ -55,6 +63,9 @@ export class PlaylistPage {
   readonly feedbackAt = signal<"toolbar" | "comment">("toolbar");
   readonly deleting = signal(false);
   readonly commentVersion = signal(0);
+  readonly visibleComments = computed(() =>
+    (this.page.data()?.playlist.comments || []).filter((comment) => !comment.hidden),
+  );
   comment = "";
   readonly links = computed(() =>
     Object.values(this.page.data()?.playlist.links || {})
@@ -103,13 +114,13 @@ export class PlaylistPage {
       await this.load(data.playlist.id, true);
     });
   }
-  addComment() {
+  addComment(form: NgForm) {
     this.feedbackAt.set("comment");
     const data = this.page.data();
     if (!data) return;
     void this.action.run(async () => {
       await this.playlists.addComment(data.playlist.id, this.comment);
-      this.comment = "";
+      form.resetForm({ comment: "" });
       this.commentVersion.update((v) => v + 1);
       await this.load(data.playlist.id, true);
     }, "Comment added.");

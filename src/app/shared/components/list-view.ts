@@ -81,7 +81,7 @@ export interface ListFilter {
         </p>
       }
     </div>
-    <nav class="pagination" [attr.aria-label]="label() + ' pagination'">
+    <nav class="pagination" [class.comments-pagination]="layout() === 'comment-list'" [attr.aria-label]="label() + ' pagination'">
       <span role="status"
         >{{ window().start }}–{{ window().end }} of {{ filtered().length }}
         {{ label().toLowerCase() }}</span
@@ -93,9 +93,9 @@ export interface ListFilter {
           [ngModel]="size()"
           (ngModelChange)="size.set(+$event); current.set(1)"
         >
-          <option [ngValue]="12">12</option>
-          <option [ngValue]="24">24</option>
-          <option [ngValue]="48">48</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
         </select>
         <mat-error>{{ field3.validationMessage() }}</mat-error></mat-form-field
       >
@@ -171,6 +171,9 @@ export interface ListFilter {
       .page-buttons {
         align-items: center;
       }
+      .comments-pagination .app-ui-field {
+        margin-left: auto;
+      }
       @media (max-width: 600px) {
         .pagination {
           justify-content: center;
@@ -178,6 +181,12 @@ export interface ListFilter {
         .page-buttons {
           width: 100%;
           justify-content: space-between;
+        }
+        .comments-pagination > [role="status"] {
+          width: 100%;
+        }
+        .comments-pagination .page-buttons {
+          width: auto;
         }
       }
     `,
@@ -200,7 +209,7 @@ export class ListView<T> {
   readonly template = contentChild<TemplateRef<{ $implicit: T }>>(TemplateRef);
   readonly search = signal("");
   readonly selected = signal<Record<string, string>>({});
-  readonly size = signal(12);
+  readonly size = signal(25);
   readonly current = linkedSignal(() => {
     this.resetKey();
     return 1;

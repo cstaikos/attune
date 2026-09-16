@@ -14,9 +14,9 @@ app-root .view-root {
   min-height: 0;
 }
 app-root .topbar {
-  grid-template-columns: 1fr minmax(220px, 340px) 1fr;
+  grid-template-columns: minmax(max-content, calc((100vw - 1200px) / 2 - 48px)) minmax(0, 1fr) auto;
 }
-app-root .topbar:not(:has(.topbar-search)) {
+app-root .topbar:not(:has(.library-nav)) {
   grid-template-columns: 1fr auto;
 }
 app-root .library-nav {
@@ -289,7 +289,7 @@ app-playlist-card .meta-line {
 app-root .topbar {
   max-width: none;
   min-height: 80px;
-  padding: 16px max(24px, calc((100vw - 1200px) / 2));
+  padding: 16px 24px;
   background: var(--surface);
   gap: 24px;
 }
@@ -311,13 +311,17 @@ app-root .topbar {
 }
 app-root .library-nav {
   max-width: none;
-  padding: 0 max(24px, calc((100vw - 1200px) / 2));
-  gap: 28px;
-  background: var(--surface);
+  min-width: 0;
+  padding: 0;
+  gap: 8px 24px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  border: 0;
+  background: transparent;
 }
 .library-nav a {
   border-radius: 0;
-  padding: 16px 0 13px;
+  padding: 10px 0 7px;
   border-bottom: 3px solid transparent;
   font-size: 0.875rem;
 }
@@ -337,18 +341,22 @@ app-root .library-nav {
   padding: 0 24px 48px;
 }
 .library-intro {
-  padding: 36px 0 28px;
+  padding: 16px 0 12px;
+}
+.library-layout {
+  --library-gutter: 24px;
+  max-width: none;
+  padding-inline: 0;
+}
+.library-layout > .library-results,
+.library-layout > app-library-filters {
+  width: calc(100% - 2 * var(--library-gutter));
+  max-width: 1200px;
+  margin-inline: auto;
 }
 .library-intro h2 {
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  margin: 6px 0 8px;
-}
-.library-intro .eyebrow {
-  font-size: 0.67rem;
-  letter-spacing: 0.13em;
-}
-.library-intro > div > p:last-child {
-  font-size: 0.9rem;
+  font-size: 1.5rem;
+  margin: 0;
 }
 .primary-button,
 .ghost-button,
@@ -366,10 +374,15 @@ textarea {
   padding: 10px 12px;
 }
 .column-toolbar {
-  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px max(var(--library-gutter), calc((100% - 1200px) / 2));
   margin-bottom: 24px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
   background: var(--surface);
   flex-wrap: wrap;
 }
@@ -383,6 +396,26 @@ textarea {
 .toolbar-actions select {
   border: 1px solid var(--line);
   padding-right: 30px;
+}
+.library-search {
+  width: 100%;
+  min-width: 0;
+}
+.library-layout .toolbar-actions {
+  margin-left: auto;
+}
+.library-layout .toolbar-actions > a {
+  margin-left: auto;
+}
+@media (max-width: 1100px) {
+  .library-layout .column-toolbar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .library-search {
+    flex: 1 1 240px;
+  }
 }
 .view-switch {
   border-radius: 8px;
@@ -435,7 +468,7 @@ textarea {
 }
 .card-body {
   padding: 20px;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
   gap: 16px;
 }
 .card-identity {
@@ -495,11 +528,35 @@ app-playlist-card .meta-line {
   border-radius: 7px;
   background: var(--surface);
 }
-.mini-chart-wrap {
-  border: 1px solid #e7e9df;
-  background: #f7f8f2;
-  border-radius: 8px;
-  padding: 10px 12px;
+.playlist-card .cover-art {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+}
+.playlist-card .cover-art::before,
+.playlist-card .cover-art::after {
+  opacity: 0.25;
+  pointer-events: none;
+}
+.cover-energy-arc {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+.cover-energy-arc .mini-chart svg {
+  height: auto;
+  max-height: 80px;
+}
+.cover-energy-arc .chart-grid {
+  opacity: 0;
+}
+.cover-energy-arc .chart-area {
+  fill: #244d3820;
+}
+.cover-energy-arc .chart-line {
+  stroke: #244d38;
+  stroke-width: 3;
+  filter: drop-shadow(0 1px 1px #ffffffcc);
 }
 .tag {
   border-radius: 4px;
@@ -527,6 +584,7 @@ app-playlist-card .meta-line {
   height: 100%;
   min-height: 150px;
   border-radius: 0;
+  padding: 8px;
 }
 .playlist-list .card-body {
   display: grid;
@@ -536,9 +594,9 @@ app-playlist-card .meta-line {
 .playlist-list .card-identity {
   min-height: 0;
 }
-.playlist-list .mini-chart-wrap {
-  display: block;
-  align-self: center;
+.playlist-list .tag-row,
+.playlist-list .card-actions {
+  grid-column: 2;
 }
 .playlist-list .card-actions {
   justify-content: flex-end;
@@ -642,6 +700,17 @@ app-playlist-card .meta-line {
   padding: 0;
 }
 @media (max-width: 1040px) {
+  app-root .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  app-root .topbar .account-bar {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  app-root .library-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
   .playlist-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -664,16 +733,18 @@ app-playlist-card .meta-line {
     justify-content: flex-end;
   }
   app-root .library-nav {
-    padding: 0 20px;
-    gap: 20px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    padding: 0;
+    gap: 4px 20px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
   .library-nav a {
     white-space: nowrap;
     font-size: 0.8rem;
   }
-  .library-layout,
+  .library-layout {
+    --library-gutter: 16px;
+  }
   .detail-page,
   .profile-page,
   .profiles-page {
@@ -681,11 +752,10 @@ app-playlist-card .meta-line {
     padding-right: 16px;
   }
   .library-intro {
-    padding: 28px 0 24px;
-    gap: 20px;
+    padding: 16px 0 12px;
   }
   .column-toolbar {
-    padding: 12px;
+    padding: 12px var(--library-gutter);
     gap: 14px;
   }
   .toolbar-actions {
@@ -696,6 +766,10 @@ app-playlist-card .meta-line {
   }
   .toolbar-actions select {
     max-width: none;
+  }
+  .library-layout .toolbar-actions .app-ui-field {
+    flex: 1 1 160px;
+    width: 160px;
   }
   .playlist-grid {
     grid-template-columns: 1fr;
@@ -713,7 +787,7 @@ app-playlist-card .meta-line {
     min-height: 0;
   }
   .playlist-list .playlist-card {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
   }
   .playlist-list .card-body {
     display: flex;

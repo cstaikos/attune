@@ -17,29 +17,33 @@
         <h1>attune</h1>
       </div></a
     >
-    @if(member.session()) {
-    <form class="topbar-search" (ngSubmit)="searchLibrary()">
-      <mat-form-field appField="Search playlists" #field1="appField"
-        ><mat-label>Search playlists</mat-label
-        ><input
-          matInput
-          id="global-search"
-          type="search"
-          name="search"
-          [(ngModel)]="search"
-          placeholder="Search the library"
-        /><mat-error>{{field1.validationMessage()}}</mat-error
-        ><button
-          matSuffix
-          matButton
-          appButton="text"
-          size="small"
-          type="submit"
-        >
-          Search
-        </button></mat-form-field
+    @if(member.session()){
+    <nav class="library-nav" aria-label="Library sections">
+      <a
+        routerLink="/library"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Library</a
+      ><a
+        routerLink="/saved"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Saved</a
+      ><a
+        routerLink="/contributions"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >My contributions</a
+      ><a
+        routerLink="/profiles"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Community</a
       >
-    </form>
+      @if(isAdmin()){<a routerLink="/admin" routerLinkActive="active"
+        >Administration</a
+      >}
+    </nav>
     }
     <div class="account-bar">
       @if(member.session();as session){<a
@@ -64,34 +68,6 @@
       ><a matButton appButton="primary" routerLink="/join">Join</a>}
     </div>
   </header>
-  @if(member.session()){
-  <nav class="library-nav" aria-label="Library sections">
-    <a
-      routerLink="/library"
-      routerLinkActive="active"
-      ariaCurrentWhenActive="page"
-      >Library</a
-    ><a
-      routerLink="/saved"
-      routerLinkActive="active"
-      ariaCurrentWhenActive="page"
-      >Saved</a
-    ><a
-      routerLink="/contributions"
-      routerLinkActive="active"
-      ariaCurrentWhenActive="page"
-      >My contributions</a
-    ><a
-      routerLink="/profiles"
-      routerLinkActive="active"
-      ariaCurrentWhenActive="page"
-      >Community</a
-    >
-    @if(isAdmin()){<a routerLink="/admin" routerLinkActive="active"
-      >Administration</a
-    >}
-  </nav>
-  }
   <div class="shell-feedback">
     <app-action-feedback [error]="action.error()" />
   </div>

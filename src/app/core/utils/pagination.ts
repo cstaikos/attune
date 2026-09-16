@@ -1,5 +1,5 @@
 export function pageWindow(total: number, requested: number, size: number) {
-  const pageSize = Number.isFinite(size) ? Math.max(1, Math.floor(size)) : 12;
+  const pageSize = Number.isFinite(size) ? Math.max(1, Math.floor(size)) : 25;
   const count = Math.max(0, Math.floor(total));
   const pages = Math.max(1, Math.ceil(count / pageSize));
   const page = Math.min(

@@ -1,17 +1,12 @@
-import { UI_FIELDS } from "./shared/ui/field";
 import { UI_BUTTONS } from "./shared/ui/native-button";
 import { LeaveDialog } from "./shared/components/leave-dialog";
 import { Component, effect, inject } from "@angular/core";
-import { FormsModule } from "@angular/forms";
 import {
-  NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
   RouterOutlet,
 } from "@angular/router";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { filter, map } from "rxjs";
 import { MemberSession } from "./core/auth/member-session";
 import { MODERATION_SERVICE } from "./core/services/service-tokens";
 import { signal } from "@angular/core";
@@ -22,8 +17,6 @@ import { ActionFeedback } from "./shared/components/action-feedback";
   selector: "app-root",
   imports: [
     ...UI_BUTTONS,
-    ...UI_FIELDS,
-    FormsModule,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
@@ -40,19 +33,7 @@ export class App {
   private readonly auth = inject(AUTH_SERVICE);
   private readonly router = inject(Router);
   private hadSession = false;
-  search = "";
-  private readonly navigation = toSignal(
-    this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map((event) => event.urlAfterRedirects),
-    ),
-    { initialValue: this.router.url },
-  );
   constructor() {
-    effect(() => {
-      this.search =
-        this.router.parseUrl(this.navigation()).queryParams["q"] || "";
-    });
     effect(() => {
       const signedIn = !!this.member.session();
       this.isAdmin.set(false);
@@ -72,11 +53,6 @@ export class App {
           queryParams: { returnUrl: this.router.url },
         });
       this.hadSession = signedIn;
-    });
-  }
-  searchLibrary() {
-    void this.router.navigate(["/library"], {
-      queryParams: { q: this.search || null },
     });
   }
   signOut() {

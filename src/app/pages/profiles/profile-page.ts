@@ -84,7 +84,12 @@ export class ProfilePage {
           ? this.invitations.listMine()
           : Promise.resolve([]),
       ]);
-      return { profile, playlists, saved, invitations };
+      return {
+        profile,
+        playlists: playlists.filter((playlist) => !playlist.hidden),
+        saved,
+        invitations,
+      };
     }, retainData);
   }
   edit() {

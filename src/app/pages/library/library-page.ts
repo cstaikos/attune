@@ -47,7 +47,7 @@ export class LibraryPage {
   });
   readonly query = signal<PlaylistQuery>({ sort: "newest" });
   readonly filtersOpen = signal(false);
-  readonly layout = signal<"cards" | "list">("cards");
+  search = "";
   readonly page = new PageLoad<{
     playlists: Playlist[];
     profiles: Profile[];
@@ -57,6 +57,7 @@ export class LibraryPage {
   constructor() {
     effect(() => {
       const search = this.params().get("q") || "";
+      this.search = search;
       this.query.update((q) => ({ ...q, search }));
     });
     effect(() => {
@@ -78,13 +79,25 @@ export class LibraryPage {
         this.profiles.list(),
         this.social.savedIds(),
       ]);
-      return { playlists, profiles, saved };
+      return {
+        playlists: playlists.filter((playlist) => !playlist.hidden),
+        profiles,
+        saved,
+      };
     }, retainData);
   }
   creator(id: string) {
     return this.page.data()?.profiles.find((p) => p.id === id);
   }
+  searchLibrary() {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q: this.search.trim() || null },
+      queryParamsHandling: "merge",
+    });
+  }
   clear() {
+    this.search = "";
     this.query.set({ sort: "newest" });
     void this.router.navigate([], {
       relativeTo: this.route,

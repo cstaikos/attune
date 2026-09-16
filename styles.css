@@ -1306,6 +1306,7 @@ body { line-height: 1.5; }
 .library-nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 48px; max-width: 1440px; margin: auto; border-bottom: 1px solid var(--line); }
 .library-nav a { padding: 10px 16px; border-radius: 24px; color: var(--muted); }
 .library-nav a[aria-current="page"] { background: #e4e9df; color: #354a30; }
+.playlist-title-actions { display: flex; align-items: center; gap: 12px; }
 .playlist-primary-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 24px 0; }
 .playlist-primary-actions .field-hint { flex-basis: 100%; margin: 0; }
 .danger-button { color: #943d35; }

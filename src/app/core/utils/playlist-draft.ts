@@ -30,6 +30,10 @@ export function cleanDraft(input: PlaylistDraft): PlaylistDraft {
     input.energyCurve.length < 2 ||
     input.energyCurve.length > 24 ||
     input.energyCurve.some((n) => !Number.isInteger(n) || n < 1 || n > 5) ||
+    (input.energyLabels !== undefined &&
+      (!Array.isArray(input.energyLabels) ||
+        input.energyLabels.length !== input.energyCurve.length ||
+        input.energyLabels.some((label) => typeof label !== "string"))) ||
     input.creatorWarningLabels.some((label) => !labels.includes(label)) ||
     input.listeningContext.length > 1000 ||
     !links.length ||
@@ -44,6 +48,10 @@ export function cleanDraft(input: PlaylistDraft): PlaylistDraft {
     modality: input.modality,
     duration: `${duration}m`,
     energyCurve: [...input.energyCurve],
+    energyLabels: input.energyCurve.map((_, i, curve) =>
+      input.energyLabels?.[i]?.trim() ??
+      (i === 0 ? "start" : i === curve.length - 1 ? "finish" : ""),
+    ),
     qualities: [...new Set(input.qualities)],
     notes: input.notes.trim(),
     links: Object.fromEntries(links.map(([key, url]) => [key, url.trim()])),

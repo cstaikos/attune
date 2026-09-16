@@ -18,7 +18,12 @@
     "test": "tsc -p tsconfig.mock-tests.json && node --test tests/*.test.cjs",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "format": "prettier --write \"src/**/*.{ts,html,css}\"",
-    "start:local": "ng serve --configuration local"
+    "start:local": "ng serve --configuration local",
+    "start:ui": "ng serve --configuration ui-preview --port 4202",
+    "start:local:stack": "npm run db:start && npm run start:local",
+    "build:local": "ng build --configuration local",
+    "build:ui": "ng build --configuration ui-preview",
+    "check": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "@angular/cdk": "~22.1.6",

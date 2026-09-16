@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AUTH_SERVICE } from "../../core/services/service-tokens";
 import { safeReturnUrl } from "../../core/utils/return-url";
+import { clearInvitation, pendingInvitation } from "../../core/utils/invite-link";
 import { ActionState } from "../../shared/state/action-state";
 import { ActionFeedback } from "../../shared/components/action-feedback";
 
@@ -41,7 +42,7 @@ export class AccountPage {
     username: [""],
     displayName: [""],
     practice: [""],
-    inviteCode: [""],
+    inviteCode: [this.mode === "redeem" ? pendingInvitation() : ""],
   });
   constructor() {
     if (this.mode === "verify" || this.mode === "forgot")
@@ -129,7 +130,8 @@ export class AccountPage {
           this.ready.set(false);
         }
         if (this.mode === "redeem") {
-          await this.auth.redeemInvitation(value);
+        await this.auth.redeemInvitation(value);
+        clearInvitation();
           this.form.controls.inviteCode.reset();
           await this.router.navigateByUrl(this.destination);
         }

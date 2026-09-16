@@ -31,15 +31,39 @@ import { Component, computed, input } from "@angular/core";
         }
       </svg>
       @if (!mini()) {
-        <figcaption>
-          <span>Start</span><span>Middle</span><span>Finish</span>
+        <figcaption [class.point-labels]="hasLabels()">
+          @if (hasLabels()) {
+            @for (point of points(); track $index) {
+              <span
+                [style.left.%]="point.x / width() * 100"
+                [style.width.%]="100 / points().length"
+              >{{point.label}}</span>
+            }
+          } @else {
+            <span>Start</span><span>Middle</span><span>Finish</span>
+          }
         </figcaption>
       }
     </figure>
   `,
+  styles: `
+    figcaption { display: flex; }
+    figcaption span { flex: 1; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+    figcaption span:first-child { text-align: left; }
+    figcaption span:last-child { text-align: right; }
+    figcaption.point-labels { display: grid; grid-template-columns: minmax(0, 1fr); }
+    figcaption.point-labels span {
+      grid-area: 1 / 1;
+      position: relative;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+  `,
 })
 export class EnergyChart {
   readonly values = input.required<readonly number[]>();
+  readonly labels = input<readonly string[] | undefined>();
+  readonly hasLabels = computed(() => this.labels()?.some((label) => label.trim()) ?? false);
   readonly mini = input(false);
   readonly width = computed(() => (this.mini() ? 260 : 720));
   readonly height = computed(() => (this.mini() ? 68 : 190));
@@ -51,6 +75,7 @@ export class EnergyChart {
         this.pad() +
         (i / Math.max(1, a.length - 1)) * (this.width() - 2 * this.pad()),
       y: this.y(n),
+      label: this.labels()?.[i] ?? (i === 0 ? "start" : i === a.length - 1 ? "finish" : ""),
     })),
   );
   readonly line = computed(() =>

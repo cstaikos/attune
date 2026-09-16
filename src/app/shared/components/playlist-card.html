@@ -14,9 +14,6 @@
   </a>
   <div class="card-body">
     <div class="card-identity">
-      <div class="playlist-modality">
-        <span>Modality</span><strong>{{playlist().modality}}</strong>
-      </div>
       <div class="card-title-row">
         <div>
           <h3>
@@ -44,16 +41,30 @@
           {{saved() ? 'Saved' : 'Save'}}
         </button>
       </div>
+      @if (notesPreview()) {
+        <p class="card-notes">{{notesPreview()}}</p>
+      }
     </div>
-    <div class="tag-row">
+    <div class="card-tags">
+      <div class="playlist-modality card-modality">
+        <span>Modality</span><strong>{{playlist().modality}}</strong>
+      </div>
       @for (tag of playlist().qualities.slice(0,3); track tag) {
-      <span class="tag">{{tag | titlecase}}</span> }
+        <span class="tag">{{tag | titlecase}}</span>
+      }
     </div>
     <div class="card-actions">
       <div class="card-stats">
         <span>{{playlist().savedCount}} saved</span
         ><span>{{playlist().comments.length}} comments</span>
       </div>
+      @if (!playlist().hidden) {
+        <app-private-report
+          target="playlist"
+          [targetId]="playlist().id"
+          [compact]="true"
+        />
+      }
     </div>
   </div>
 </article>

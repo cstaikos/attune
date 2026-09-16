@@ -54,6 +54,7 @@ const playlist = shape({
   title: text,
   modality: member(modalities),
   energyCurve: array(member([1, 2, 3, 4, 5])),
+  energyLabels: optional(array(text)),
   duration: text,
   qualities: array(tag),
   taxonomyVersion: (v) => v === 1,

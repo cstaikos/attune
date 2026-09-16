@@ -17,6 +17,7 @@ import { Profile, Playlist, Invitation } from "../../core/models/library";
 import { MemberSession } from "../../core/auth/member-session";
 import { PageLoad } from "../../shared/state/page-load";
 import { ActionState } from "../../shared/state/action-state";
+import { invitationLink } from "../../core/utils/invite-link";
 import { PageStatus } from "../../shared/components/page-status";
 import { ActionFeedback } from "../../shared/components/action-feedback";
 import { PlaylistCard } from "../../shared/components/playlist-card";
@@ -36,6 +37,13 @@ import { PlaylistCard } from "../../shared/components/playlist-card";
   templateUrl: "./profile-page.html",
 })
 export class ProfilePage {
+  readonly invitationLink = invitationLink;
+  copyInvitation(code: string) {
+    void this.action.run(
+      () => navigator.clipboard.writeText(invitationLink(code)),
+      "Invite link copied.",
+    );
+  }
   readonly createdInvitation = signal<Invitation | null>(null);
   invitationStatus(invitation: Invitation) {
     return invitation.redeemedBy

@@ -47,6 +47,7 @@ export interface Playlist {
   title: string;
   modality: Modality;
   energyCurve: EnergyLevel[];
+  energyLabels?: string[];
   duration: string;
   qualities: MusicTag[];
   warnings: Partial<Record<ListeningNoteLabel, number>>;

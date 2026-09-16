@@ -178,3 +178,14 @@ test('comments retain their text through reload and edits without warning marker
  assert.equal(comments[1].warning,undefined);
  await assert.rejects(app.playlists.addComment(playlist.id,' '),code('invalid-input'));
 });
+
+test('energy labels default at endpoints and preserve custom and cleared labels after reload', async () => {
+ const app = setup();
+ await join(app);
+ const playlist = await app.playlists.create(draft());
+ assert.deepEqual(playlist.energyLabels, ['start', '', 'finish']);
+ await app.playlists.update(playlist.id, draft({energyLabels: ['', ' Peak ', '']}));
+ const loaded = setup(app.storage);
+ assert.deepEqual((await loaded.playlists.get(playlist.id)).energyLabels, ['', 'Peak', '']);
+ await assert.rejects(app.playlists.update(playlist.id, draft({energyLabels: ['start']})), code('invalid-input'));
+});

@@ -566,6 +566,34 @@ app-playlist-card .meta-line {
   border-top: 1px solid var(--line);
   padding-top: 14px;
 }
+.playlist-card .card-actions {
+  flex-wrap: wrap;
+}
+.playlist-card .card-actions app-private-report {
+  margin-left: auto;
+}
+.card-tags {
+  display: flex;
+  align-items: center;
+  align-content: start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.playlist-card .card-modality {
+  align-self: start;
+  margin: 0;
+  padding: 6px 10px;
+}
+.playlist-card .card-modality > strong {
+  font-size: 0.8rem;
+}
+.card-notes {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 .card-stats {
   gap: 14px;
   font-size: 0.72rem;
@@ -593,13 +621,15 @@ app-playlist-card .meta-line {
 }
 .playlist-list .card-identity {
   min-height: 0;
+  grid-row: 1;
 }
-.playlist-list .tag-row,
-.playlist-list .card-actions {
+.playlist-list .card-tags {
   grid-column: 2;
 }
 .playlist-list .card-actions {
-  justify-content: flex-end;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-content: space-between;
 }
 .detail-hero,
 .profile-hero {
@@ -818,4 +848,10 @@ app-playlist-card .meta-line {
     margin: 24px auto;
     padding: 24px;
   }
+}
+
+.arc-label {
+  grid-column: 1 / -1;
+  min-width: 0;
+  width: 100%;
 }

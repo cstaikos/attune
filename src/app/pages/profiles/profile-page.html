@@ -96,10 +96,16 @@
         <li>
           <div>
             <p>
-              Copy this code now. It won’t be shown again after you leave this
-              page.
+              Share this invite link with the person you’d like to invite. Save
+              it now; it won’t be shown again after you leave this page.
             </p>
-            <code>{{created.code}}</code>
+            @if(created.code; as code) {
+            <p><a [href]="invitationLink(code)">{{invitationLink(code)}}</a></p>
+            <button matButton appButton="secondary" [disabled]="action.busy()" (click)="copyInvitation(code)">
+              Copy invite link
+            </button>
+            <p>Or share the code: <code>{{code}}</code></p>
+            }
           </div>
         </li>
         }

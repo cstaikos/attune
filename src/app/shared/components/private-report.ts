@@ -15,9 +15,11 @@ import { ActionFeedback } from "./action-feedback";
       appButton="text"
       type="button"
       class="report-trigger"
+      [class.compact]="compact()"
+      [attr.aria-label]="'Report ' + target()"
       (click)="open(dialog)"
     >
-      Report {{ target() }}
+      {{ compact() ? 'Report' : 'Report ' + target() }}
     </button>
     <dialog
       #dialog
@@ -119,12 +121,22 @@ import { ActionFeedback } from "./action-feedback";
         color: var(--muted);
         padding: 6px 0;
       }
+      .report-trigger.compact {
+        display: block;
+        height: 20px;
+        min-height: 0;
+        min-width: 0;
+        padding: 0;
+        font-size: 0.72rem;
+        line-height: 20px;
+      }
     `,
   ],
 })
 export class PrivateReportComponent {
   readonly target = input.required<ReportTarget>();
   readonly targetId = input.required<string>();
+  readonly compact = input(false);
   readonly service = inject(MODERATION_SERVICE);
   readonly action = new ActionState();
   category = "";

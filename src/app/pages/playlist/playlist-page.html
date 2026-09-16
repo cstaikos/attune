@@ -11,46 +11,69 @@
 <article class="detail-page playlist-detail">
   <div class="detail-hero">
     <div
-      class="detail-cover large-cover"
+      class="detail-cover playlist-cover"
       [style.--cover-a]="data.playlist.coverA"
       [style.--cover-b]="data.playlist.coverB"
+      aria-hidden="true"
     ></div>
     <div class="detail-hero-body">
-      <a class="back-link" routerLink="/library">Back to library</a>
-      <div class="playlist-modality">
-        <span>Modality</span><strong>{{data.playlist.modality}}</strong>
-      </div>
       <div class="detail-title-row">
-        <div>
-          <h2>{{data.playlist.title}}</h2>
+        <div class="detail-heading">
+          <div class="detail-title">
+            <h2>{{data.playlist.title}}</h2>
+            <div class="playlist-modality">
+              <span>Modality</span><strong>{{data.playlist.modality}}</strong>
+            </div>
+          </div>
           <div class="detail-stats">
             <span>{{data.playlist.duration}}</span
             ><span>{{data.playlist.savedCount}} saved</span
             ><span>{{visibleComments().length}} comments</span>
           </div>
         </div>
-        <div class="playlist-title-actions">
-          <button
-            matButton
-            appButton="chip"
-            size="small"
-            [class.active]="data.saved.includes(data.playlist.id)"
-            [attr.aria-pressed]="data.saved.includes(data.playlist.id)"
-            [disabled]="action.busy()"
-            (click)="save()"
+        <div class="detail-utilities">
+          <div class="playlist-title-actions">
+            <button
+              matButton
+              appButton="chip"
+              size="small"
+              [class.active]="data.saved.includes(data.playlist.id)"
+              [attr.aria-pressed]="data.saved.includes(data.playlist.id)"
+              [disabled]="action.busy()"
+              (click)="save()"
+            >
+              {{data.saved.includes(data.playlist.id) ? 'Saved' : 'Save'}}
+            </button>
+            @if(!data.playlist.hidden){<app-private-report
+              target="playlist"
+              [targetId]="data.playlist.id"
+            />}
+          </div>
+          <a
+            class="detail-creator"
+            [routerLink]="['/profile',data.playlist.creatorId]"
           >
-            {{data.saved.includes(data.playlist.id) ? 'Saved' : 'Save'}}
-          </button>
-          @if(!data.playlist.hidden){<app-private-report
-            target="playlist"
-            [targetId]="data.playlist.id"
-          />}
+            <span class="avatar"
+              >{{creator(data.playlist.creatorId)?.initials}}</span
+            >
+            <span>By <strong>{{name(data.playlist.creatorId)}}</strong></span>
+          </a>
         </div>
+      </div>
+      <section class="detail-notes" aria-labelledby="playlist-notes-heading">
+        <h3 id="playlist-notes-heading">Notes</h3>
+        <p class="notes">{{data.playlist.notes || 'No notes added yet.'}}</p>
+      </section>
+      <div class="tag-row">
+        @for(tag of data.playlist.qualities;track tag){<span class="tag"
+          >{{tag | titlecase}}</span
+        >}
       </div>
       <div class="playlist-primary-actions">
         @for(link of links();track link.href){<a
           matButton
           appButton="primary"
+          size="small"
           class="service-link"
           [attr.data-service]="link.key"
           [href]="link.href"
@@ -62,12 +85,14 @@
         } @if(data.playlist.creatorId===member.session()?.userId){<a
           matButton
           appButton="secondary"
+          size="small"
           [routerLink]="['/edit',data.playlist.id]"
           >Edit playlist</a
         ><button
           matButton
           appButton="text"
           tone="danger"
+          size="small"
           [disabled]="action.busy()"
           (click)="deleting.set(true)"
         >
@@ -93,6 +118,7 @@
           matButton
           appButton="primary"
           tone="danger"
+          size="small"
           [disabled]="action.busy()"
           (click)="remove()"
         >
@@ -100,35 +126,16 @@
         </button>
       </section>
       }
-      <div class="creator-row compact">
-        <a
-          class="mini-profile"
-          [routerLink]="['/profile',data.playlist.creatorId]"
-          ><div class="avatar">
-            {{creator(data.playlist.creatorId)?.initials}}
-          </div>
-          <div>
-            <strong>{{name(data.playlist.creatorId)}}</strong
-            ><span>{{creator(data.playlist.creatorId)?.username}}</span>
-          </div></a
-        >
-      </div>
-      <div class="tag-row">
-        @for(tag of data.playlist.qualities;track tag){<span class="tag"
-          >{{tag | titlecase}}</span
-        >}
-      </div>
     </div>
   </div>
   <div class="detail-content">
     <div class="detail-main">
       <section class="detail-section">
         <h3>Energy arc</h3>
-        <app-energy-chart [values]="data.playlist.energyCurve" />
-      </section>
-      <section class="detail-section">
-        <h3>Notes</h3>
-        <p class="notes">{{data.playlist.notes || 'No notes added yet.'}}</p>
+        <app-energy-chart
+          [values]="data.playlist.energyCurve"
+          [labels]="data.playlist.energyLabels"
+        />
       </section>
       <section class="detail-section comments-section">
         <h3>Comments</h3>
@@ -157,7 +164,11 @@
             </div>
           </ng-template>
         </app-list-view>
-        <form class="comment-form" #commentForm="ngForm" (ngSubmit)="addComment(commentForm)">
+        <form
+          class="comment-form"
+          #commentForm="ngForm"
+          (ngSubmit)="addComment(commentForm)"
+        >
           <mat-form-field appField="Add comment" #field1="appField"
             ><mat-label>Add comment</mat-label>
             <textarea

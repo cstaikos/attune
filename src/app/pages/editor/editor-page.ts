@@ -56,6 +56,7 @@ export class EditorPage {
     notes: [""],
     qualities: this.fb.control<MusicTag[]>([]),
     links: this.fb.array([this.fb.control("")]),
+    energyLabels: this.fb.array(["start", "", "", "", "", "finish"].map((label) => this.fb.control(label))),
     energy: this.fb.array([1, 2, 3, 4, 3, 2].map((n) => this.fb.control(n))),
   });
   constructor() {
@@ -95,6 +96,12 @@ export class EditorPage {
       this.form.controls.energy.clear();
       for (const n of p?.energyCurve || [1, 2, 3, 4, 3, 2])
         this.form.controls.energy.push(this.fb.control(n));
+      this.form.controls.energyLabels.clear();
+      this.form.controls.energy.controls.forEach((_, i, curve) => {
+        this.form.controls.energyLabels.push(this.fb.control(
+          p?.energyLabels?.[i] ?? (i === 0 ? "start" : i === curve.length - 1 ? "finish" : ""),
+        ));
+      });
       this.form.markAsPristine();
       return p;
     });
@@ -132,13 +139,16 @@ export class EditorPage {
   }
   addPoint() {
     if (this.form.controls.energy.length < 24) {
-      this.form.controls.energy.push(this.fb.control(2));
+      const index = this.form.controls.energy.length - 1;
+      this.form.controls.energy.insert(index, this.fb.control(2));
+      this.form.controls.energyLabels.insert(index, this.fb.control(""));
       this.form.markAsDirty();
     }
   }
   removePoint(index: number) {
     if (this.form.controls.energy.length > 2) {
       this.form.controls.energy.removeAt(index);
+      this.form.controls.energyLabels.removeAt(index);
       this.form.markAsDirty();
     }
   }
@@ -162,6 +172,7 @@ export class EditorPage {
         modality: v.modality,
         duration: `${v.hours * 60 + v.minutes}m`,
         energyCurve: v.energy as EnergyLevel[],
+        energyLabels: v.energyLabels,
         notes: v.notes,
         qualities: v.qualities,
         creatorWarningLabels: this.page.data()?.creatorWarningLabels || [],

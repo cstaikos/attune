@@ -35,6 +35,7 @@ interface PlaylistRow {
   modality: Playlist["modality"];
   duration_minutes: number;
   energy_curve: Playlist["energyCurve"];
+  energy_labels: string[] | null;
   qualities: Playlist["qualities"];
   listening_reviewed: boolean;
   listening_context: string;
@@ -85,6 +86,7 @@ export class SupabasePlaylists implements PlaylistService {
       modality: row.modality,
       duration: `${row.duration_minutes}m`,
       energyCurve: row.energy_curve,
+      energyLabels: row.energy_labels ?? undefined,
       qualities: row.qualities,
       taxonomyVersion: 1,
       listeningReviewed: row.listening_reviewed,
@@ -141,6 +143,7 @@ export class SupabasePlaylists implements PlaylistService {
           modality: draft.modality,
           duration_minutes: durationMinutes(draft.duration),
           energy_curve: draft.energyCurve,
+          energy_labels: draft.energyLabels,
           qualities: draft.qualities,
           listening_reviewed: draft.listeningReviewed,
           listening_context: draft.listeningContext,

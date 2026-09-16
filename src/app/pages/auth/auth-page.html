@@ -2,11 +2,19 @@
   <p class="eyebrow">Private beta</p>
   <h2>{{joining() ? 'Make room for good music.' : 'Welcome back.'}}</h2>
   <p>
-    {{joining() ? 'Join a community sharing music for thoughtful sessions.' :
+    {{joining() ? 'The library is invite-only. Use your invite link or enter an invitation code to join.' :
     'Sign in to revisit your library.'}}
   </p>
   <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
     <fieldset [disabled]="action.busy()">
+      @if(joining()) {
+      <app-text-field
+        label="Invitation code"
+        [control]="form.controls.inviteCode"
+        autocomplete="off"
+        hint="Already filled in if you opened an invite link."
+      />
+      }
       <app-text-field
         label="Email"
         [control]="form.controls.email"
@@ -35,7 +43,7 @@
   <p>
     Have an invitation?
     <a routerLink="/join" [queryParams]="{returnUrl:destination}"
-      >Join the library</a
+      >Join with an invite</a
     >
   </p>
   }
@@ -45,8 +53,8 @@
   </p>
   @if(joining()) {
   <p>
-    Verify your email, then enter your invitation code to join. Open the email
-    link in this browser.
+    Verify your email, then finish your profile to join. We’ll remember your
+    invitation in this browser. Keep your invite link in case you need it again.
   </p>
   }
 </section>

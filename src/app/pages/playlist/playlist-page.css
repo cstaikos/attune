@@ -1,0 +1,147 @@
+.playlist-detail .detail-hero {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.playlist-cover {
+  width: 100%;
+  border-radius: 0;
+}
+
+.detail-hero-body {
+  display: block;
+  min-width: 0;
+  padding: 32px;
+}
+
+.detail-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+}
+
+.detail-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.detail-title .playlist-modality {
+  margin: 0;
+}
+
+.detail-heading h2 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.detail-stats {
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-utilities {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 280px;
+}
+
+.playlist-title-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.detail-creator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.detail-creator strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.detail-creator .avatar {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  font-size: 0.65rem;
+}
+
+.detail-notes {
+  margin-top: 24px;
+  max-width: 75ch;
+}
+
+.detail-notes h3 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.detail-notes .notes {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.detail-hero .tag-row {
+  margin-top: 20px;
+}
+
+.playlist-primary-actions {
+  gap: 8px;
+  margin: 20px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.playlist-primary-actions .service-link {
+  min-height: 32px;
+  height: 32px;
+  padding-inline: 14px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .playlist-detail .detail-hero {
+    grid-template-columns: min(128px, 25%) minmax(0, 1fr);
+    padding: 0;
+  }
+
+  .detail-hero-body {
+    padding: 20px;
+  }
+
+  .detail-title-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .detail-utilities {
+    max-width: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .detail-creator {
+    margin-left: auto;
+  }
+}

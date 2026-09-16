@@ -36,6 +36,7 @@ import { EnergyChart } from "../../shared/components/energy-chart";
     EnergyChart,
   ],
   templateUrl: "./playlist-page.html",
+  styleUrl: "./playlist-page.css",
   styles: `
     .comment time {
       display: block;

@@ -11,6 +11,7 @@ export type PlaylistDraft = Pick<
   | "title"
   | "modality"
   | "energyCurve"
+  | "energyLabels"
   | "duration"
   | "qualities"
   | "notes"

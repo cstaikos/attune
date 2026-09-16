@@ -1,10 +1,11 @@
+import { UI_BUTTONS } from "../shared/ui/native-button";
 import { Component, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
 @Component({
   selector: "app-route-placeholder",
-  imports: [RouterLink],
+  imports: [...UI_BUTTONS, RouterLink],
   template: `
     <section class="empty-state" aria-labelledby="page-heading">
       <h2 id="page-heading">{{ data()["heading"] }}</h2>
@@ -15,7 +16,9 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
           This screen is being prepared. The library will be available soon.
         </p>
       }
-      <a class="ghost-button" routerLink="/library">Back to library</a>
+      <a matButton appButton="secondary" routerLink="/library"
+        >Back to library</a
+      >
     </section>
   `,
 })

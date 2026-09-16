@@ -1,3 +1,6 @@
+import { AppSlider } from "../../shared/ui/slider";
+import { UI_FIELDS } from "../../shared/ui/field";
+import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { Component, viewChild } from "@angular/core";
 import {
   FormControl,
@@ -14,6 +17,9 @@ import { AppCheckbox, AppToggle } from "../../shared/ui/boolean-controls";
 @Component({
   selector: "app-ui-showcase-page",
   imports: [
+    ...UI_FIELDS,
+    ...UI_BUTTONS,
+    AppSlider,
     ReactiveFormsModule,
     AppButton,
     AppIconButton,
@@ -46,6 +52,18 @@ import { AppCheckbox, AppToggle } from "../../shared/ui/boolean-controls";
       >
     </div>
     <p role="status">{{ message }}</p>
+    <h2>Selection and destructive actions</h2>
+    <div class="button-row">
+      <button
+        matButton
+        appButton="chip"
+        [attr.aria-pressed]="selected"
+        (click)="selected = !selected"
+      >
+        Ambient
+      </button>
+      <button matButton appButton="text" tone="danger">Delete example</button>
+    </div>
     <h2>Form controls</h2>
     <form [formGroup]="form" (ngSubmit)="validate()">
       <app-text-field
@@ -70,6 +88,17 @@ import { AppCheckbox, AppToggle } from "../../shared/ui/boolean-controls";
         [options]="stages"
         hint="Choose the intended stage."
       />
+      <mat-form-field appField="Duration in minutes" #durationField="appField">
+        <mat-label>Duration in minutes</mat-label>
+        <input
+          matInput
+          type="number"
+          [formControl]="form.controls.duration"
+          min="0"
+        />
+        <mat-error>{{ durationField.validationMessage() }}</mat-error>
+      </mat-form-field>
+      <app-slider label="Energy" [control]="form.controls.energy" />
       <app-text-field label="Disabled field" [control]="disabledText" />
       <app-select
         label="Disabled select"
@@ -119,12 +148,18 @@ import { AppCheckbox, AppToggle } from "../../shared/ui/boolean-controls";
 export class UiShowcasePage {
   private readonly formDirective = viewChild.required(FormGroupDirective);
   message = "";
+  selected = false;
   readonly stages = [
     { value: "opening", label: "Opening" },
     { value: "exploration", label: "Exploration" },
     { value: "closing", label: "Closing" },
   ];
   readonly form = new FormGroup({
+    duration: new FormControl(30, {
+      nonNullable: true,
+      validators: [Validators.min(0)],
+    }),
+    energy: new FormControl(3, { nonNullable: true }),
     title: new FormControl("", {
       nonNullable: true,
       validators: [Validators.required],

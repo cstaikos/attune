@@ -20,3 +20,44 @@ Use `error` to supply a domain-specific message for those fields.
 
 Keep business actions in pages and services. Add wrapper options only when an
 app use case needs them; do not forward the entire Material API.
+
+## Existing forms and native actions
+
+Use `UI_BUTTONS` for native buttons and router/external links. The shared
+`appButton` directive configures Material while keeping click events, focus,
+ARIA attributes, disabled state, and form submission on the native element.
+Buttons default to `type="button"`; submit actions must specify `type="submit"`.
+Variants are `primary`, `secondary`, `text`, and `chip`. Use `tone="danger"` for
+destructive actions and `aria-pressed` for selection state.
+
+```html
+<button matButton appButton="primary" type="submit" [disabled]="action.busy()">
+  Save
+</button>
+<a matButton appButton="secondary" routerLink="/library">Cancel</a>
+```
+
+Use `UI_FIELDS` for existing reactive or template-driven forms. Keep the native
+control directly inside the Material field so Material can discover it and wire
+labels, hints, and errors. The `appField` directive owns appearance and validation
+messages; page templates own labels, validators, and bindings. Inputs and textareas
+use `matInput`; native selects use `matNativeControl`.
+
+```html
+<mat-form-field appField="Title" #titleField="appField">
+  <mat-label>Title</mat-label>
+  <input matInput formControlName="title" required />
+  <mat-error>{{ titleField.validationMessage() }}</mat-error>
+</mat-form-field>
+```
+
+`AppSlider` accepts a numeric `control`, accessible `label`, `min`, `max`, `step`,
+and optional `disabled`. `AppCheckbox` also supports `[checked]` and
+`(checkedChange)` for query/filter state without allocating a FormControl.
+
+## UI preview
+
+Run `pnpm exec ng serve --configuration ui-preview --port 4202` for an isolated
+sample-data preview with a seeded administrator. All data stays in memory and
+resets on reload. This configuration never connects to Supabase; production and
+local Supabase configurations continue to use their existing providers.

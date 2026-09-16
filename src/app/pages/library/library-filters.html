@@ -1,8 +1,9 @@
 <aside class="filters-panel" id="library-filters" aria-label="Playlist filters">
   <section class="filter-section">
     <h2>Modality</h2>
-    <mat-form-field
-       appField="Modality" #field1="appField"><mat-label>Modality</mat-label><select
+    <mat-form-field appField="Modality" #field1="appField"
+      ><mat-label>Modality</mat-label
+      ><select
         matNativeControl
         id="modality-filter"
         [ngModel]="query().modality || ''"
@@ -11,29 +12,35 @@
         <option value="">All modalities</option>
         @for(m of modalities;track m){
         <option [value]="m">{{m}}</option>
-        }
-      </select><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+        }</select
+      ><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field
+    >
     <h2>Duration</h2>
     <p class="field-hint">
       Minutes, including both limits. Leave blank for no limit.
     </p>
     <div class="duration-filter-range">
-      <mat-form-field
-         appField="At least" #field2="appField"><mat-label>At least</mat-label><input
+      <mat-form-field appField="At least" #field2="appField"
+        ><mat-label>At least</mat-label
+        ><input
           matInput
           type="number"
           min="0"
           step="1"
           [ngModel]="query().minDuration"
-          (ngModelChange)="patch({minDuration:$event ?? undefined})" /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field><mat-form-field
-         appField="At most" #field3="appField"><mat-label>At most</mat-label><input
+          (ngModelChange)="patch({minDuration:$event ?? undefined})"
+        /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field
+      ><mat-form-field appField="At most" #field3="appField"
+        ><mat-label>At most</mat-label
+        ><input
           matInput
           type="number"
           min="0"
           step="1"
           [ngModel]="query().maxDuration"
           (ngModelChange)="patch({maxDuration:$event ?? undefined})"
-      /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field>
+        /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field
+      >
     </div>
     <h2>Music service</h2>
     @for(service of services;track service.value){<app-checkbox

@@ -12,26 +12,36 @@
     </div>
     <fieldset class="form-fields" [disabled]="action.busy()">
       <div class="form-grid two-column">
-        <mat-form-field class="full-span"
-           appField="Title" #field1="appField"><mat-label>Title</mat-label><input
+        <mat-form-field class="full-span" appField="Title" #field1="appField"
+          ><mat-label>Title</mat-label
+          ><input
             matInput
             formControlName="title"
             required
             maxlength="200"
             placeholder="Playlist title"
-        /><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+          /><mat-error
+            >{{field1.validationMessage()}}</mat-error
+          ></mat-form-field
+        >
         <fieldset class="duration-field">
           <legend>Duration</legend>
           <div class="duration-inputs">
-            <mat-form-field
-               appField="Hours" #field2="appField"><mat-label>Hours</mat-label><input
+            <mat-form-field appField="Hours" #field2="appField"
+              ><mat-label>Hours</mat-label
+              ><input
                 matInput
                 type="number"
                 formControlName="hours"
                 min="0"
                 step="1"
-                required /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field><mat-form-field
-               appField="Minutes" #field3="appField"><mat-label>Minutes</mat-label><input
+                required
+              /><mat-error
+                >{{field2.validationMessage()}}</mat-error
+              ></mat-form-field
+            ><mat-form-field appField="Minutes" #field3="appField"
+              ><mat-label>Minutes</mat-label
+              ><input
                 matInput
                 type="number"
                 formControlName="minutes"
@@ -39,15 +49,23 @@
                 max="59"
                 step="1"
                 required
-            /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field>
+              /><mat-error
+                >{{field3.validationMessage()}}</mat-error
+              ></mat-form-field
+            >
           </div>
         </fieldset>
-        <mat-form-field class="modality-field"
-           appField="Modality" #field4="appField"><mat-label>Modality</mat-label><select matNativeControl formControlName="modality">
+        <mat-form-field
+          class="modality-field"
+          appField="Modality"
+          #field4="appField"
+          ><mat-label>Modality</mat-label
+          ><select matNativeControl formControlName="modality">
             @for(m of modalities;track m){
             <option [value]="m">{{m}}</option>
-            }
-          </select><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field>
+            }</select
+          ><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field
+        >
         <fieldset class="field-group full-span" formArrayName="links">
           <legend>Playlist links</legend>
           <p class="field-hint">
@@ -57,13 +75,17 @@
           @for(control of form.controls.links.controls;track control;let
           i=$index){
           <div class="link-editor">
-            <mat-form-field
-               appField="URL {{i+1}}" #field5="appField"><mat-label>URL {{i+1}}</mat-label><input
+            <mat-form-field appField="URL {{i+1}}" #field5="appField"
+              ><mat-label>URL {{i+1}}</mat-label
+              ><input
                 matInput
                 type="url"
                 [formControlName]="i"
                 placeholder="https://…"
-            /><mat-error>{{field5.validationMessage()}}</mat-error></mat-form-field>
+              /><mat-error
+                >{{field5.validationMessage()}}</mat-error
+              ></mat-form-field
+            >
             <span class="field-hint">{{linkLabel(control.value)}}</span>
             <button
               matButton
@@ -122,14 +144,16 @@
             Add point
           </button>
         </fieldset>
-        <mat-form-field class="full-span" appField="Notes" #field6="appField"><mat-label>Notes</mat-label>
+        <mat-form-field class="full-span" appField="Notes" #field6="appField"
+          ><mat-label>Notes</mat-label>
           <textarea
             matInput
             formControlName="notes"
             rows="4"
             placeholder="Setting, pacing, transitions, facilitation notes"
           ></textarea>
-        <mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field>
+          <mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field
+        >
       </div>
       <fieldset class="field-group">
         <legend>Music tags</legend>

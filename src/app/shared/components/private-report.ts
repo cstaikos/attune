@@ -32,8 +32,9 @@ import { ActionFeedback } from "./action-feedback";
           Help keep this community thoughtful and useful. Choose what needs
           attention and an administrator will review it.
         </p>
-        <mat-form-field
-           appField="What’s the issue?" #field1="appField"><mat-label>What’s the issue?</mat-label><select
+        <mat-form-field appField="What’s the issue?" #field1="appField"
+          ><mat-label>What’s the issue?</mat-label
+          ><select
             matNativeControl
             name="category"
             [(ngModel)]="category"
@@ -49,16 +50,21 @@ import { ActionFeedback } from "./action-feedback";
             <option>Broken or incorrect content</option>
             <option>Something else</option>
           </select>
-        <mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+          <mat-error>{{
+            field1.validationMessage()
+          }}</mat-error></mat-form-field
+        >
         <mat-form-field
-         appField="{{
+          appField="{{
             category === 'Something else'
               ? 'Tell us what happened'
               : 'Anything else we should know? (optional)'
-          }}" #field2="appField"><mat-label>{{
-            category === 'Something else'
-              ? 'Tell us what happened'
-              : 'Anything else we should know? (optional)'
+          }}"
+          #field2="appField"
+          ><mat-label>{{
+            category === "Something else"
+              ? "Tell us what happened"
+              : "Anything else we should know? (optional)"
           }}</mat-label>
           <textarea
             matInput
@@ -70,7 +76,10 @@ import { ActionFeedback } from "./action-feedback";
             placeholder="A little context helps us understand the issue."
             [disabled]="action.busy()"
           ></textarea>
-        <mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field>
+          <mat-error>{{
+            field2.validationMessage()
+          }}</mat-error></mat-form-field
+        >
         <small
           >Only you and administrators can see this report. You can follow its
           status on your profile.</small

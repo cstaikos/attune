@@ -157,7 +157,8 @@
           </ng-template>
         </app-list-view>
         <form class="comment-form" (ngSubmit)="addComment()">
-          <mat-form-field appField="Add comment" #field1="appField"><mat-label>Add comment</mat-label>
+          <mat-form-field appField="Add comment" #field1="appField"
+            ><mat-label>Add comment</mat-label>
             <textarea
               matInput
               id="comment"
@@ -167,7 +168,11 @@
               maxlength="5000"
               placeholder="Share context, thoughts, or adaptations"
               [disabled]="action.busy()"
-            ></textarea><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field><button
+            ></textarea
+            ><mat-error
+              >{{field1.validationMessage()}}</mat-error
+            ></mat-form-field
+          ><button
             matButton
             appButton="primary"
             type="submit"

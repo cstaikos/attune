@@ -26,18 +26,25 @@ export interface ListFilter {
       @if (searchable()) {
         <mat-form-field
           class="list-search"
-           appField="Search {{ label().toLowerCase() }}" #field1="appField"><mat-label>Search {{ label().toLowerCase() }}</mat-label><input
+          appField="Search {{ label().toLowerCase() }}"
+          #field1="appField"
+          ><mat-label>Search {{ label().toLowerCase() }}</mat-label
+          ><input
             matInput
             type="search"
             [ngModel]="search()"
             (ngModelChange)="search.set($event); current.set(1)"
             placeholder="Search…"
           />
-        <mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+          <mat-error>{{
+            field1.validationMessage()
+          }}</mat-error></mat-form-field
+        >
       }
       @for (filter of filters(); track filter.key) {
-        <mat-form-field
-           appField="{{ filter.label }}" #field2="appField"><mat-label>{{ filter.label }}</mat-label><select
+        <mat-form-field appField="{{ filter.label }}" #field2="appField"
+          ><mat-label>{{ filter.label }}</mat-label
+          ><select
             matNativeControl
             [ngModel]="selected()[filter.key] || ''"
             (ngModelChange)="setFilter(filter.key, $event)"
@@ -47,7 +54,10 @@ export interface ListFilter {
               <option [value]="option.value">{{ option.label }}</option>
             }
           </select>
-        <mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field>
+          <mat-error>{{
+            field2.validationMessage()
+          }}</mat-error></mat-form-field
+        >
       }
       @if (search() || hasFilters()) {
         <button matButton appButton="text" type="button" (click)="clear()">
@@ -76,8 +86,9 @@ export interface ListFilter {
         >{{ window().start }}–{{ window().end }} of {{ filtered().length }}
         {{ label().toLowerCase() }}</span
       >
-      <mat-form-field
-         appField="Per page" #field3="appField"><mat-label>Per page</mat-label><select
+      <mat-form-field appField="Per page" #field3="appField"
+        ><mat-label>Per page</mat-label
+        ><select
           matNativeControl
           [ngModel]="size()"
           (ngModelChange)="size.set(+$event); current.set(1)"
@@ -86,7 +97,8 @@ export interface ListFilter {
           <option [ngValue]="24">24</option>
           <option [ngValue]="48">48</option>
         </select>
-      <mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field>
+        <mat-error>{{ field3.validationMessage() }}</mat-error></mat-form-field
+      >
       <div class="page-buttons">
         <button
           matButton

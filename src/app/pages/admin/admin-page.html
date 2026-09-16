@@ -215,7 +215,8 @@
       manage accounts.
     </p>
     }
-    <mat-form-field appField="Reason for this decision" #field1="appField"><mat-label>Reason for this decision</mat-label>
+    <mat-form-field appField="Reason for this decision" #field1="appField"
+      ><mat-label>Reason for this decision</mat-label>
       <textarea
         matInput
         name="reason"
@@ -227,7 +228,8 @@
         placeholder="Explain your decision for the audit log."
         [disabled]="action.busy()"
       ></textarea>
-    <mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+      <mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field
+    >
     <small
       >Required. Saved with your name in the administrator audit log.</small
     >

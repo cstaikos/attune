@@ -34,8 +34,9 @@
       >
         Refresh playlists
       </button>
-      <mat-form-field
-         appField="Sort playlists" #field1="appField"><mat-label>Sort playlists</mat-label><select
+      <mat-form-field appField="Sort playlists" #field1="appField"
+        ><mat-label>Sort playlists</mat-label
+        ><select
           matNativeControl
           id="sort"
           [ngModel]="query().sort"
@@ -43,8 +44,9 @@
         >
           <option value="newest">Newest</option>
           <option value="favorites">Most saved</option>
-          <option value="comments">Most discussed</option>
-        </select><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+          <option value="comments">Most discussed</option></select
+        ><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field
+      >
       <div class="view-switch" role="group" aria-label="Library view">
         <button
           matButton

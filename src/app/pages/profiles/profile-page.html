@@ -42,12 +42,28 @@
     <form class="profile-edit" [formGroup]="form" (ngSubmit)="update()">
       <fieldset class="form-fields" [disabled]="action.busy()">
         <div class="form-grid two-column">
-          <mat-form-field
-             appField="Display name" #field1="appField"><mat-label>Display name</mat-label><input matInput formControlName="displayName" /><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field><mat-form-field
-             appField="Practice context" #field2="appField"><mat-label>Practice context</mat-label><input matInput formControlName="practice" required /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field><mat-form-field
-             appField="Location" #field3="appField"><mat-label>Location</mat-label><input matInput formControlName="location" /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field><mat-form-field class="full-span" appField="Bio" #field4="appField"><mat-label>Bio</mat-label>
+          <mat-form-field appField="Display name" #field1="appField"
+            ><mat-label>Display name</mat-label
+            ><input matInput formControlName="displayName" /><mat-error
+              >{{field1.validationMessage()}}</mat-error
+            ></mat-form-field
+          ><mat-form-field appField="Practice context" #field2="appField"
+            ><mat-label>Practice context</mat-label
+            ><input matInput formControlName="practice" required /><mat-error
+              >{{field2.validationMessage()}}</mat-error
+            ></mat-form-field
+          ><mat-form-field appField="Location" #field3="appField"
+            ><mat-label>Location</mat-label
+            ><input matInput formControlName="location" /><mat-error
+              >{{field3.validationMessage()}}</mat-error
+            ></mat-form-field
+          ><mat-form-field class="full-span" appField="Bio" #field4="appField"
+            ><mat-label>Bio</mat-label>
             <textarea matInput formControlName="bio" rows="3"></textarea>
-          <mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field>
+            <mat-error
+              >{{field4.validationMessage()}}</mat-error
+            ></mat-form-field
+          >
         </div>
         <div class="modal-actions">
           <button

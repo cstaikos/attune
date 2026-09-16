@@ -138,3 +138,8 @@ app-text-field textarea {
 .app-ui-button[aria-pressed="true"] {
   background: var(--mat-sys-primary-container);
 }
+
+.leave-dialog {
+  background: var(--surface);
+  color: var(--ink);
+}

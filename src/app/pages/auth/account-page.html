@@ -21,63 +21,78 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
     <fieldset [disabled]="action.busy()">
       @if(mode === 'verify' || mode === 'forgot') {
-      <mat-form-field
-         appField="Email" #field1="appField"><mat-label>Email</mat-label><input
+      <mat-form-field appField="Email" #field1="appField"
+        ><mat-label>Email</mat-label
+        ><input
           matInput
           formControlName="email"
           type="email"
           autocomplete="email"
           required
-      /><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field>
+        /><mat-error>{{field1.validationMessage()}}</mat-error></mat-form-field
+      >
       } @if(mode === 'reset') {
-      <mat-form-field
-         appField="New password" #field2="appField"><mat-label>New password</mat-label><input
+      <mat-form-field appField="New password" #field2="appField"
+        ><mat-label>New password</mat-label
+        ><input
           matInput
           formControlName="password"
           type="password"
           autocomplete="new-password"
           minlength="8"
           required
-      /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field>
-      <mat-form-field
-         appField="Confirm password" #field3="appField"><mat-label>Confirm password</mat-label><input
+        /><mat-error>{{field2.validationMessage()}}</mat-error></mat-form-field
+      >
+      <mat-form-field appField="Confirm password" #field3="appField"
+        ><mat-label>Confirm password</mat-label
+        ><input
           matInput
           formControlName="confirmation"
           type="password"
           autocomplete="new-password"
           minlength="8"
           required
-      /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field>
+        /><mat-error>{{field3.validationMessage()}}</mat-error></mat-form-field
+      >
       } @if(mode === 'redeem') {
-      <mat-form-field
-         appField="Username" #field4="appField"><mat-label>Username</mat-label><input
+      <mat-form-field appField="Username" #field4="appField"
+        ><mat-label>Username</mat-label
+        ><input
           matInput
           formControlName="username"
           autocomplete="username"
           required
-      /><mat-hint>3–30 letters, numbers, or hyphens.</mat-hint><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field>
-      <mat-form-field
-         appField="Display name (optional)" #field5="appField"><mat-label>Display name (optional)</mat-label><input
+        /><mat-hint>3–30 letters, numbers, or hyphens.</mat-hint
+        ><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field
+      >
+      <mat-form-field appField="Display name (optional)" #field5="appField"
+        ><mat-label>Display name (optional)</mat-label
+        ><input
           matInput
           formControlName="displayName"
           autocomplete="nickname"
           maxlength="100"
-      /><mat-error>{{field5.validationMessage()}}</mat-error></mat-form-field>
-      <mat-form-field
-         appField="Practice context" #field6="appField"><mat-label>Practice context</mat-label><input
+        /><mat-error>{{field5.validationMessage()}}</mat-error></mat-form-field
+      >
+      <mat-form-field appField="Practice context" #field6="appField"
+        ><mat-label>Practice context</mat-label
+        ><input
           matInput
           formControlName="practice"
           maxlength="200"
           required
           placeholder="Therapist, facilitator, researcher"
-      /><mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field>
-      <mat-form-field
-         appField="Invite code" #field7="appField"><mat-label>Invite code</mat-label><input
+        /><mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field
+      >
+      <mat-form-field appField="Invite code" #field7="appField"
+        ><mat-label>Invite code</mat-label
+        ><input
           matInput
           formControlName="inviteCode"
           autocomplete="off"
           required
-      /><mat-error>{{field7.validationMessage()}}</mat-error></mat-form-field>
+        /><mat-error>{{field7.validationMessage()}}</mat-error></mat-form-field
+      >
       }
       <button matButton appButton="primary" type="submit">
         {{action.busy() ? 'Please wait…' : mode === 'redeem' ? 'Redeem

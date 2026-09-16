@@ -22,8 +22,10 @@ export class AppField {
     const errors = this.field()?.ngControl?.errors;
     if (errors?.["required"]) return `${this.label()} is required.`;
     if (errors?.["email"]) return "Enter a valid email address.";
-    if (errors?.["minlength"]) return `Use at least ${errors["minlength"].requiredLength} characters.`;
-    if (errors?.["maxlength"]) return `Use no more than ${errors["maxlength"].requiredLength} characters.`;
+    if (errors?.["minlength"])
+      return `Use at least ${errors["minlength"].requiredLength} characters.`;
+    if (errors?.["maxlength"])
+      return `Use no more than ${errors["maxlength"].requiredLength} characters.`;
     if (errors?.["min"]) return `Enter ${errors["min"].min} or more.`;
     if (errors?.["max"]) return `Enter ${errors["max"].max} or less.`;
     return `Check ${this.label().toLowerCase()}.`;

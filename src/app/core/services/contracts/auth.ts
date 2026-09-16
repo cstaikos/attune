@@ -18,7 +18,7 @@ export interface AuthService {
   resendVerification(email: string): Promise<void>;
   requestPasswordReset(email: string): Promise<void>;
   updatePassword(password: string): Promise<void>;
-  completeCallback(code: string): Promise<void>;
+  completeCallback(code: string, tokens?: { access_token: string; refresh_token: string }): Promise<void>;
   redeemInvitation(
     input: Omit<Registration, "email" | "password">,
   ): Promise<void>;

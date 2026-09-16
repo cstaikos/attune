@@ -102,12 +102,17 @@ export class SupabaseAuth implements AuthService {
     if (error) throw error;
   }
 
-  async completeCallback(code: string): Promise<void> {
-    if (!code)
+  async completeCallback(
+    code: string,
+    tokens?: { access_token: string; refresh_token: string },
+  ): Promise<void> {
+    if (!code && !(tokens?.access_token && tokens?.refresh_token))
       throw new Error(
         "This email link is missing or expired. Request a new link and open it in the browser where you requested it.",
       );
-    const { error } = await this.client.auth.exchangeCodeForSession(code);
+    const { error } = code
+      ? await this.client.auth.exchangeCodeForSession(code)
+      : await this.client.auth.setSession(tokens!);
     if (
       error?.name === "AuthPKCECodeVerifierMissingError" ||
       error?.code === "pkce_code_verifier_not_found" ||

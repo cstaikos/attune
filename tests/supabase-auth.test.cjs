@@ -15,6 +15,7 @@ function setup({ confirmed = true, membership = 'active', signedIn = true } = {}
       async resend(input) { calls.push(['resend', input]); return { error: null }; },
       async resetPasswordForEmail(...input) { calls.push(['recover', ...input]); return { error: null }; },
       async exchangeCodeForSession(code) { calls.push(['exchange', code]); return { error: null }; },
+      async setSession(tokens) { calls.push(['setSession', tokens]); return { error: null }; },
       async updateUser(input) { calls.push(['update', input]); return { error: null }; },
       async signOut(input) { calls.push(['logout', input]); signedIn = false; listener('SIGNED_OUT'); return { error: null }; },
     },
@@ -81,6 +82,21 @@ test('missing and expired callback codes fail even with a previous session', asy
   assert.equal(app.calls.length, 0);
   app.client.auth.exchangeCodeForSession = async () => ({ error: new Error('expired') });
   await assert.rejects(app.auth.completeCallback('used-code'), /invalid or expired/);
+});
+
+test('implicit email links establish a session using both tokens', async () => {
+  const app = setup({ signedIn: false });
+  const tokens = { access_token: 'access', refresh_token: 'refresh' };
+  await app.auth.completeCallback('', tokens);
+  assert.deepEqual(app.calls, [['setSession', tokens]]);
+});
+
+test('incomplete or rejected implicit links fail even with a previous session', async () => {
+  const app = setup();
+  await assert.rejects(app.auth.completeCallback('', { access_token: 'access', refresh_token: '' }), /missing or expired/);
+  assert.equal(app.calls.length, 0);
+  app.client.auth.setSession = async () => ({ error: new Error('expired') });
+  await assert.rejects(app.auth.completeCallback('', { access_token: 'access', refresh_token: 'refresh' }), /invalid or expired/);
 });
 
 test('a different browser gets sign-in guidance instead of a false expiry message', async () => {

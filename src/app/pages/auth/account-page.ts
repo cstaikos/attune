@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AUTH_SERVICE } from "../../core/services/service-tokens";
 import { safeReturnUrl } from "../../core/utils/return-url";
+import { emailCallback } from "../../core/utils/auth-callback";
 import { clearInvitation, pendingInvitation } from "../../core/utils/invite-link";
 import { ActionState } from "../../shared/state/action-state";
 import { ActionFeedback } from "../../shared/components/action-feedback";
@@ -71,17 +72,16 @@ export class AccountPage {
     }
     void this.action.run(async () => {
       if (this.mode === "callback") {
-        const params = this.route.snapshot.queryParamMap;
-        const code = params.get("code") || "";
+        const callback = emailCallback(new URL(window.location.href));
         // Remove one-use credentials from the address bar, including failed links.
         history.replaceState(history.state, "", "/auth/callback");
-        if (params.has("error"))
+        if (callback.error)
           throw new Error(
             "This email link is invalid or expired. Request a new link below.",
           );
-        await this.auth.completeCallback(code);
+        await this.auth.completeCallback(callback.code, callback.tokens);
         await this.router.navigateByUrl(
-          params.get("recovery") === "1" ? "/reset-password" : "/redeem",
+          callback.recovery ? "/reset-password" : "/redeem",
           { replaceUrl: true },
         );
         return;

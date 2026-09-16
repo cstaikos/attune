@@ -51,6 +51,10 @@ are no longer used by the Angular app. Prototype/mock data is not imported.
    the same browser and origin where the request began. Switching devices requires
    signing in after email confirmation; recovery needs a new request on that device.
 3. `/auth/callback` exchanges the one-use code and removes it from browser history.
+   Email links generated outside the app (including Studio recovery/magic links)
+   may return to the site root with session tokens in the URL fragment. The app
+   routes these through the same callback, removes the tokens from the address
+   bar, and sends recovery links to `/reset-password`.
    Invalid, expired, reused, or wrong-browser links offer verification/recovery retry.
 4. A verified account enters a username, practice, and invitation at `/redeem`.
    `redeem_invitation()` alone creates membership and consumes the code atomically.

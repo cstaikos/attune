@@ -1,6 +1,10 @@
 import { bootstrapApplication } from "@angular/platform-browser";
 import { App } from "./app/app";
 import { appConfig } from "./app/app.config";
+import { emailCallbackPath } from "./app/core/utils/auth-callback";
+
+const callbackPath = emailCallbackPath(new URL(window.location.href));
+if (callbackPath) history.replaceState(history.state, "", callbackPath);
 
 bootstrapApplication(App, appConfig).catch((error: unknown) => {
   console.error(error);

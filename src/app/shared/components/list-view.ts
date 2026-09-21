@@ -171,6 +171,7 @@ export interface ListFilter {
       .page-buttons {
         align-items: center;
       }
+      :host(.library-list) .pagination .app-ui-field,
       .comments-pagination .app-ui-field {
         margin-left: auto;
       }
@@ -182,9 +183,11 @@ export interface ListFilter {
           width: 100%;
           justify-content: space-between;
         }
+        :host(.library-list) .pagination > [role="status"],
         .comments-pagination > [role="status"] {
           width: 100%;
         }
+        :host(.library-list) .page-buttons,
         .comments-pagination .page-buttons {
           width: auto;
         }

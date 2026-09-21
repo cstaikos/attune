@@ -67,6 +67,7 @@
       (retry)="load()"
     /><app-action-feedback [error]="action.error()" /> @if(page.data();as data){
     <app-list-view
+      class="library-list"
       [items]="data.playlists"
       label="Playlists"
       [searchable]="false"

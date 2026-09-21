@@ -4,5 +4,21 @@
   "assets": {
     "directory": "./dist/resonance/browser",
     "not_found_handling": "single-page-application"
+  },
+  "env": {
+    "staging": {
+      "name": "attune-staging",
+      "assets": {
+        "directory": "./dist/staging/browser",
+        "not_found_handling": "single-page-application"
+      }
+    },
+    "production": {
+      "name": "attune-production",
+      "assets": {
+        "directory": "./dist/production/browser",
+        "not_found_handling": "single-page-application"
+      }
+    }
   }
 }

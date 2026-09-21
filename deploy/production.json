@@ -1,0 +1,7 @@
+{
+  "workerName": "attune-production",
+  "supabase": {
+    "url": "https://dkekfcrkpaotinmqelgl.supabase.co",
+    "publishableKey": "sb_publishable_K8wGPdGxrWGIUq4hQhMtXQ_SNyOQSm3"
+  }
+}

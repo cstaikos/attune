@@ -5,3 +5,9 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Deployment credentials and generated browser configuration
+.dev.vars*
+.wrangler/
+.deploy-*.lock
+src/environments/environment.*.generated.ts

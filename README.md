@@ -69,41 +69,19 @@ pnpm exec supabase db lint --local      # Check SQL functions
 
 ## Deploy
 
-### 1. Hosted Supabase
-
-For the currently configured staging project:
-
-```sh
-pnpm exec supabase login
-pnpm exec supabase link --project-ref mtlfdrkrrqxdfsjcuery
-pnpm exec supabase db push --dry-run
-pnpm exec supabase db push
-```
-
-Review the dry run before pushing. For another environment, change the project reference and frontend configuration together. Push migrations before deploying the frontend; do not pass `--include-seed`. See [Supabase migration commands](https://supabase.com/docs/guides/local-development/cli-workflows).
-
-For a new hosted project:
-
-- Match the local Postgres major version (17).
-- Set Auth **Site URL** to the deployed HTTPS origin. Allow `<origin>/auth/callback` and `<origin>/auth/callback?recovery=1`; add localhost equivalents only for development.
-- Enable email confirmation and refresh-token rotation; disable anonymous login; require passwords of at least eight characters.
-- Configure SMTP, verify the sending domain, and set suitable email/auth rate limits. Keep `{{ .ConfirmationURL }}` in email templates and disable email link tracking.
-- Create the first invitation through a trusted database connection: use a random code, store only its SHA-256 hash in `private.invitations`, set an expiry, and share the code privately. See [hosted setup](docs/supabase-setup.md#hosted-staging-required-before-testers-join).
-
-For production, connect `www.attunecommons.com` to the frontend host, set the hosted Supabase Site URL to `https://www.attunecommons.com`, and allow `https://www.attunecommons.com/auth/callback` and `https://www.attunecommons.com/auth/callback?recovery=1` as redirect URLs.
-
-### 2. Cloudflare frontend
+See [staging and production deployment](docs/deployment.md) for setup, secrets,
+database releases, and the production checklist.
 
 ```sh
-pnpm typecheck
-pnpm build
-pnpm dlx wrangler@4 login               # First deployment from this machine
-pnpm dlx wrangler@4 deploy
+pnpm deploy:staging:preview    # Build and validate without uploading
+pnpm deploy:staging
+pnpm deploy:production:preview
+pnpm deploy:production
 ```
 
-Deploys `dist/resonance/browser` to the `attune-staging` Worker configured in `wrangler.jsonc`. Confirm the Cloudflare account and Worker name before deploying. Wrangler is not a project dependency, so these commands use `pnpm dlx`. See [Cloudflare deployment commands](https://developers.cloudflare.com/workers/wrangler/commands/workers/).
-
-For another static host, publish `dist/resonance/browser` and rewrite application routes to `/index.html`. Deploy the output of `pnpm build`; `build:local` targets localhost and `build:ui` uses mocks. After deployment, check direct-link refresh, signup/confirmation, password recovery, and login on the deployed origin. Open auth email links in the browser/origin that requested them.
+Production requires a separate Supabase project configured in
+`deploy/production.json`. Secrets belong in ignored environment files or CI
+secret storage.
 
 ## Administration
 

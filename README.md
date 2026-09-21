@@ -1,4 +1,6 @@
-# App management
+# Attune Commons
+
+Public site: [www.attunecommons.com](https://www.attunecommons.com/).
 
 ## Install
 
@@ -87,6 +89,8 @@ For a new hosted project:
 - Enable email confirmation and refresh-token rotation; disable anonymous login; require passwords of at least eight characters.
 - Configure SMTP, verify the sending domain, and set suitable email/auth rate limits. Keep `{{ .ConfirmationURL }}` in email templates and disable email link tracking.
 - Create the first invitation through a trusted database connection: use a random code, store only its SHA-256 hash in `private.invitations`, set an expiry, and share the code privately. See [hosted setup](docs/supabase-setup.md#hosted-staging-required-before-testers-join).
+
+For production, connect `www.attunecommons.com` to the frontend host, set the hosted Supabase Site URL to `https://www.attunecommons.com`, and allow `https://www.attunecommons.com/auth/callback` and `https://www.attunecommons.com/auth/callback?recovery=1` as redirect URLs.
 
 ### 2. Cloudflare frontend
 

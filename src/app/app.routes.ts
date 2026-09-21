@@ -11,13 +11,13 @@ export const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "library" },
   {
     path: "ui-showcase",
-    title: "UI components · Attune",
+    title: "UI components · Attune Commons",
     loadComponent: () =>
       import("./pages/ui-showcase/ui-showcase-page").then(
         (m) => m.UiShowcasePage,
       ),
   },
-  { path: "login", title: "Sign in · Attune", loadComponent: auth },
+  { path: "login", title: "Sign in · Attune Commons", loadComponent: auth },
   ...[
     { path: "auth/callback", mode: "callback", title: "Verify email" },
     { path: "verify-email", mode: "verify", title: "Verify email" },
@@ -26,14 +26,14 @@ export const routes: Routes = [
     { path: "redeem", mode: "redeem", title: "Redeem invitation" },
   ].map(({ path, mode, title }) => ({
     path,
-    title: `${title} · Attune`,
+    title: `${title} · Attune Commons`,
     data: { mode },
     loadComponent: () =>
       import("./pages/auth/account-page").then((m) => m.AccountPage),
   })),
   {
     path: "join",
-    title: "Join · Attune",
+    title: "Join · Attune Commons",
     loadComponent: auth,
     data: { joining: true },
   },
@@ -43,20 +43,20 @@ export const routes: Routes = [
     children: [
       {
         path: "reports",
-        title: "My private reports · Attune",
+        title: "My private reports · Attune Commons",
         loadComponent: () =>
           import("./pages/admin/reports-page").then((m) => m.ReportsPage),
       },
       {
         path: "admin",
-        title: "Administration · Attune",
+        title: "Administration · Attune Commons",
         canActivate: [adminGuard],
         loadComponent: () =>
           import("./pages/admin/admin-page").then((m) => m.AdminPage),
       },
       {
         path: "library",
-        title: "Library · Attune",
+        title: "Library · Attune Commons",
         loadComponent: library,
         data: {
           view: "library",
@@ -67,7 +67,7 @@ export const routes: Routes = [
       },
       {
         path: "saved",
-        title: "Saved · Attune",
+        title: "Saved · Attune Commons",
         loadComponent: library,
         data: {
           view: "saved",
@@ -77,7 +77,7 @@ export const routes: Routes = [
       },
       {
         path: "contributions",
-        title: "My contributions · Attune",
+        title: "My contributions · Attune Commons",
         loadComponent: library,
         data: {
           view: "contributions",
@@ -87,31 +87,31 @@ export const routes: Routes = [
       },
       {
         path: "create",
-        title: "Add a playlist · Attune",
+        title: "Add a playlist · Attune Commons",
         loadComponent: editor,
         canDeactivate: [editorLeaveGuard],
       },
       {
         path: "edit/:id",
-        title: "Edit playlist · Attune",
+        title: "Edit playlist · Attune Commons",
         loadComponent: editor,
         canDeactivate: [editorLeaveGuard],
       },
       {
         path: "playlist/:id",
-        title: "Playlist · Attune",
+        title: "Playlist · Attune Commons",
         loadComponent: () =>
           import("./pages/playlist/playlist-page").then((m) => m.PlaylistPage),
       },
       {
         path: "profiles",
-        title: "Community · Attune",
+        title: "Community · Attune Commons",
         loadComponent: () =>
           import("./pages/profiles/profiles-page").then((m) => m.ProfilesPage),
       },
       {
         path: "profile/:id",
-        title: "Profile · Attune",
+        title: "Profile · Attune Commons",
         loadComponent: () =>
           import("./pages/profiles/profile-page").then((m) => m.ProfilePage),
       },
@@ -119,7 +119,7 @@ export const routes: Routes = [
   },
   {
     path: "**",
-    title: "Page not found · Attune",
+    title: "Page not found · Attune Commons",
     loadComponent: () =>
       import("./pages/route-placeholder").then((m) => m.RoutePlaceholder),
     data: { heading: "Page not found", notFound: true },

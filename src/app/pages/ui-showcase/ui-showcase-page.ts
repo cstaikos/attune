@@ -29,7 +29,7 @@ import { AppCheckbox, AppToggle } from "../../shared/ui/boolean-controls";
     AppToggle,
   ],
   template: ` <section class="showcase">
-    <p class="eyebrow">Attune design system</p>
+    <p class="eyebrow">Attune Commons design system</p>
     <h1>Common components</h1>
     <p>Shared colors, comfortable controls, and consistent feedback.</p>
     <h2>Buttons</h2>

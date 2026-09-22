@@ -5,6 +5,8 @@ import {
   makeEnvironmentProviders,
 } from "@angular/core";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { captureException } from "@sentry/angular";
+import { reportingFetch } from "../../utils/reporting-fetch";
 import { environment } from "../../../../environments/environment";
 import {
   MODERATION_SERVICE,
@@ -34,6 +36,11 @@ export function provideSupabaseServices() {
           environment.supabase.url,
           environment.supabase.publishableKey,
           {
+            global: {
+              fetch: reportingFetch(environment.supabase.url, (error, tags) => {
+                captureException(error, { tags });
+              }),
+            },
             auth: {
               flowType: "pkce",
               detectSessionInUrl: false,

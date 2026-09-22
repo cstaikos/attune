@@ -10,8 +10,8 @@ committed. Worker names must match their entries in `wrangler.jsonc`.
 
 ```sh
 pnpm dlx wrangler@4 login       # Once per developer machine
-pnpm build:staging             # Validate, typecheck, build; no upload
-pnpm deploy:staging:preview    # Build and Wrangler dry run; no upload
+pnpm build:staging             # Build and upload Sentry maps when configured; no site deployment
+pnpm deploy:staging:preview    # Build, Sentry upload, and Wrangler dry run
 pnpm deploy:staging            # Build and upload staging
 pnpm deploy:production:preview
 pnpm deploy:production
@@ -32,6 +32,8 @@ concurrently with deployment builds. An interrupted command may leave a
 | Value | Where to keep it |
 | --- | --- |
 | Supabase URL and publishable key | `deploy/<environment>.json`; these are visible in the browser |
+| Sentry DSN, organization, project | `deploy/<environment>.json`; the DSN is public |
+| Sentry organization auth token | `SENTRY_AUTH_TOKEN` in the matching ignored environment file or CI secret storage; source-map upload permissions |
 | Cloudflare API token and account ID | Password manager locally; ignored `.env.staging` / `.env.production`, or separate CI environment secrets |
 | Supabase access token and database password | Password manager; inject into the migration process or use the CLI password prompt |
 | SMTP credentials | Each Supabase project's Auth SMTP settings |
@@ -40,8 +42,8 @@ concurrently with deployment builds. An interrupted command may leave a
 Copy `.env.example` to `.env.staging` or `.env.production` if using token-based
 frontend deployment. Delete unused blank entries when using interactive login.
 The scripts load the matching file; already-set process environment variables
-win, so clear stale exported credentials before switching environments. Only the
-URL and publishable key are written into generated Angular configuration.
+win, so clear stale exported credentials before switching environments. Only public
+Supabase and Sentry settings are written into generated Angular configuration.
 The migration commands below do not automatically load these files.
 
 Use an account-scoped Cloudflare token with only required deployment permissions.
@@ -101,3 +103,11 @@ do not replace database tests or the browser smoke checks above.
 
 References: [Cloudflare environments](https://developers.cloudflare.com/workers/wrangler/environments/),
 [Supabase migrations](https://supabase.com/docs/guides/deployment/database-migrations).
+
+## Error reporting
+
+Release builds report Angular/browser exceptions and unexpected Supabase HTTP/network failures to the `attune-commons` Sentry project, tagged `staging` or `production` and with the Git commit as the release. Local development and UI preview builds do not initialize Sentry. Replay and performance tracing are disabled. The Supabase transport reports sanitized operation/status/error-code metadata even when the UI catches the failure; it does not change requests, responses, or database access policies. Known invalid-login and invitation errors are excluded. Browser breadcrumbs, user context, request metadata and extra payloads are omitted; email addresses, JWTs and URL query parameters are scrubbed from exception text.
+
+Set `SENTRY_AUTH_TOKEN` separately in `.env.staging` and `.env.production` (or CI secrets). Clear any exported token when switching targets because shell environment values take precedence. Set `SENTRY_RELEASE` explicitly when building outside Git. Release builds generate hidden source maps, inject Debug IDs, upload maps before deployment, then remove maps from the public output. Actual deployments fail without an upload token; build/preview commands can run without one and warn that maps were not uploaded.
+
+In Sentry, configure an email alert restricted to `production`, targeting your Sentry user, for new and regressed issues with a 60-minute repeat interval. Keep staging notifications disabled. Source-map upload tokens do not necessarily grant alert-management API permissions. Confirm email delivery separately after configuring the rule.

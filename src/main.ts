@@ -1,3 +1,5 @@
+import "./instrument";
+import { captureException } from "@sentry/angular";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { App } from "./app/app";
 import { appConfig } from "./app/app.config";
@@ -7,6 +9,7 @@ const callbackPath = emailCallbackPath(new URL(window.location.href));
 if (callbackPath) history.replaceState(history.state, "", callbackPath);
 
 bootstrapApplication(App, appConfig).catch((error: unknown) => {
+  captureException(error);
   console.error(error);
   const root = document.querySelector("app-root");
   if (!root) return;

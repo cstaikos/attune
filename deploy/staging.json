@@ -3,5 +3,10 @@
   "supabase": {
     "url": "https://mtlfdrkrrqxdfsjcuery.supabase.co",
     "publishableKey": "sb_publishable_BDKjQuvPkQQQ-tQ7JAvzIg_UZfAAU5m"
+  },
+  "sentry": {
+    "dsn": "https://06dfbb9f62e9bc9865846096f0fcaac7@o4512131072917504.ingest.us.sentry.io/4512131099262976",
+    "org": "attune-commons",
+    "project": "attune-commons"
   }
 }

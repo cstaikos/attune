@@ -10,6 +10,12 @@ const editor = () =>
 export const routes: Routes = [
   { path: "", pathMatch: "full", redirectTo: "library" },
   {
+    path: "unavailable",
+    title: "Connection unavailable · Attune Commons",
+    loadComponent: () =>
+      import("./pages/unavailable-page").then((m) => m.UnavailablePage),
+  },
+  {
     path: "ui-showcase",
     title: "UI components · Attune Commons",
     loadComponent: () =>

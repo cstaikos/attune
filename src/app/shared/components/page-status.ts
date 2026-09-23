@@ -1,7 +1,8 @@
 import { UI_BUTTONS } from "../ui/native-button";
 import { Component, input, output } from "@angular/core";
+import { FeedbackButton } from "./feedback-button";
 @Component({
-  imports: [...UI_BUTTONS],
+  imports: [...UI_BUTTONS, FeedbackButton],
   selector: "app-page-status",
   template: `
     @if (loading()) {
@@ -13,6 +14,7 @@ import { Component, input, output } from "@angular/core";
         <button matButton appButton="secondary" (click)="retry.emit()">
           Try again
         </button>
+        <app-feedback-button [problem]="true" />
       </div>
     }
   `,

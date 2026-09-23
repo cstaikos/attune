@@ -72,9 +72,18 @@
     <app-action-feedback [error]="action.error()" />
   </div>
   <main class="view-root" id="main-content" tabindex="-1">
-    <router-outlet />
+    @if(navigating()) {
+    <section class="auth-page" role="status" aria-live="polite">
+      <mat-spinner diameter="32" aria-hidden="true" />
+      <h2>Connecting…</h2>
+      <p>We're opening your page. This should only take a moment.</p>
+    </section>
+    }
+    <div [hidden]="navigating()">
+      <router-outlet />
+    </div>
   </main>
-  <footer class="site-footer"></footer>
+  <footer class="site-footer"><app-feedback-button /></footer>
 </div>
 
 <app-leave-dialog />

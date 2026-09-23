@@ -14,6 +14,21 @@ if (config.dsn) {
       Sentry.linkedErrorsIntegration(),
       Sentry.dedupeIntegration(),
       Sentry.browserApiErrorsIntegration(),
+      Sentry.feedbackIntegration({
+        autoInject: false,
+        showName: false,
+        showEmail: true,
+        isEmailRequired: false,
+        useSentryUser: { name: "", email: "" },
+        enableScreenshot: false,
+        colorScheme: "light",
+        formTitle: "Send feedback",
+        submitButtonLabel: "Send feedback",
+        emailLabel: "Email (optional, if you'd like a reply)",
+        messageLabel: "What went wrong, or what could we improve?",
+        messagePlaceholder: "Tell us what happened or share your idea.",
+        successMessageText: "Thanks! Your feedback has been sent.",
+      }),
     ],
     // No replay, tracing, console breadcrumbs, or request bodies for the beta.
     beforeSend(event) {
@@ -32,6 +47,20 @@ if (config.dsn) {
       if (event.message) event.message = redact(event.message);
       return event;
     },
+  });
+
+  // Feedback skips beforeSend. Keep only the details explicitly entered in the
+  // form and a page URL without authentication tokens or query parameters.
+  Sentry.addEventProcessor((event) => {
+    if (event.type !== "feedback") return event;
+    delete event.user;
+    delete event.extra;
+    delete event.breadcrumbs;
+    delete event.request;
+    const feedback = event.contexts?.["feedback"];
+    if (typeof feedback?.["url"] === "string")
+      feedback["url"] = feedback["url"].split(/[?#]/)[0];
+    return event;
   });
 }
 

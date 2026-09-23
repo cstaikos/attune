@@ -1,7 +1,15 @@
 import { UI_BUTTONS } from "./shared/ui/native-button";
 import { LeaveDialog } from "./shared/components/leave-dialog";
 import { Component, effect, inject } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { filter, map } from "rxjs";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import {
+  NavigationStart,
+  NavigationEnd,
+  NavigationCancel,
+  NavigationError,
+  NavigationSkipped,
   Router,
   RouterLink,
   RouterLinkActive,
@@ -13,6 +21,7 @@ import { signal } from "@angular/core";
 import { AUTH_SERVICE } from "./core/services/service-tokens";
 import { ActionState } from "./shared/state/action-state";
 import { ActionFeedback } from "./shared/components/action-feedback";
+import { FeedbackButton } from "./shared/components/feedback-button";
 @Component({
   selector: "app-root",
   imports: [
@@ -22,6 +31,8 @@ import { ActionFeedback } from "./shared/components/action-feedback";
     RouterOutlet,
     ActionFeedback,
     LeaveDialog,
+    FeedbackButton,
+    MatProgressSpinnerModule,
   ],
   templateUrl: "./app.html",
 })
@@ -32,6 +43,20 @@ export class App {
   readonly action = new ActionState();
   private readonly auth = inject(AUTH_SERVICE);
   private readonly router = inject(Router);
+  readonly navigating = toSignal(
+    this.router.events.pipe(
+      filter(
+        (event) =>
+          event instanceof NavigationStart ||
+          event instanceof NavigationEnd ||
+          event instanceof NavigationCancel ||
+          event instanceof NavigationError ||
+          event instanceof NavigationSkipped,
+      ),
+      map((event) => event instanceof NavigationStart),
+    ),
+    { initialValue: true },
+  );
   private hadSession = false;
   constructor() {
     effect(() => {
@@ -45,7 +70,8 @@ export class App {
       if (
         this.hadSession &&
         !signedIn &&
-        !/^\/(login|join|redeem|verify-email|forgot-password|reset-password|auth)(?:[/?#]|$)/.test(
+        !this.navigating() &&
+        !/^\/(login|join|redeem|verify-email|forgot-password|reset-password|auth|unavailable)(?:[/?#]|$)/.test(
           this.router.url,
         )
       )

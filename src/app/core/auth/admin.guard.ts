@@ -1,12 +1,18 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { MODERATION_SERVICE } from "../services/service-tokens";
-export const adminGuard: CanActivateFn = async () => {
+import { withTimeout } from "../utils/with-timeout";
+export const adminGuard: CanActivateFn = async (_route, state) => {
   const service = inject(MODERATION_SERVICE),
     router = inject(Router);
   try {
-    return (await service.isAdmin()) || router.createUrlTree(["/library"]);
+    return (
+      (await withTimeout(service.isAdmin())) ||
+      router.createUrlTree(["/library"])
+    );
   } catch {
-    return router.createUrlTree(["/login"]);
+    return router.createUrlTree(["/unavailable"], {
+      queryParams: { returnUrl: state.url },
+    });
   }
 };

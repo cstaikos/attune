@@ -4,6 +4,7 @@ import { InvitationService } from "../contracts/invitations";
 import { result, userId } from "./database";
 interface InvitationRow {
   id: string;
+  code: string | null;
   created_by: string;
   redeemed_by: string | null;
   expires_at: string | null;
@@ -16,6 +17,7 @@ export class SupabaseInvitations implements InvitationService {
     );
     return data.map((row) => ({
       id: row.id,
+      code: row.code ?? undefined,
       createdBy: row.created_by,
       redeemedBy: row.redeemed_by,
       expiresAt: row.expires_at,

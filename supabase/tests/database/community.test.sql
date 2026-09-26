@@ -47,6 +47,9 @@ select throws_ok($$update public.playlists set qualities=array['no vocals','sung
 select lives_ok('select * from public.create_invitation()','Member can issue a secure invitation');
 select is((select invites_remaining from public.my_membership()),2,'Issuing invitation consumes allowance');
 select is((select count(*) from public.my_invitations()),3::bigint,'Member can list own invitation metadata');
+select is((select count(*) from public.my_invitations() where length(code)=64),1::bigint,'Creator can retrieve the full code for a new invitation');
+select is((select count(*) from public.my_invitations() where code is null),2::bigint,'Legacy invitations remain listed without recoverable codes');
+select throws_ok('select shareable_code from private.invitations','42501',null,'Stored codes cannot be read directly');
 select throws_ok('select token_hash from private.invitations','42501',null,'Invite hashes are inaccessible');
 reset role;
 

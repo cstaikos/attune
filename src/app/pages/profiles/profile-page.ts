@@ -1,3 +1,4 @@
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { UI_FIELDS } from "../../shared/ui/field";
 import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { ListView } from "../../shared/components/list-view";
@@ -38,13 +39,13 @@ import { PlaylistCard } from "../../shared/components/playlist-card";
 })
 export class ProfilePage {
   readonly invitationLink = invitationLink;
+  private readonly snackBar = inject(MatSnackBar);
   copyInvitation(code: string) {
-    void this.action.run(
-      () => navigator.clipboard.writeText(invitationLink(code)),
-      "Invite link copied.",
-    );
+    void this.action.run(async () => {
+      await navigator.clipboard.writeText(invitationLink(code));
+      this.snackBar.open("Invite link copied.", "Dismiss", { duration: 4000 });
+    });
   }
-  readonly createdInvitation = signal<Invitation | null>(null);
   invitationStatus(invitation: Invitation) {
     return invitation.redeemedBy
       ? "Used"
@@ -127,8 +128,9 @@ export class ProfilePage {
   }
   invite() {
     void this.action.run(async () => {
-      this.createdInvitation.set(await this.invitations.create());
+      await this.invitations.create();
       await this.load(undefined, true);
-    }, "Invitation created. Select and copy its code below.");
+      this.snackBar.open("Invitation created.", "Dismiss", { duration: 4000 });
+    });
   }
 }

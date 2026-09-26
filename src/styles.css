@@ -169,20 +169,23 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: 20px;
 }
-.invite-list {
-  list-style: none;
-  padding: 0;
-}
-.invite-list li {
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  padding: 12px 0;
+.invitation-row {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--line);
 }
-.invite-list code {
+.invitation-row p {
+  margin: 0;
+}
+.invitation-row code {
+  white-space: normal;
   overflow-wrap: anywhere;
   user-select: all;
+}
+.invitation-row button {
+  justify-self: start;
 }
 .notes,
 .comment p,
@@ -206,10 +209,6 @@ button:disabled {
   .profile-heading-row {
     flex-wrap: wrap;
     gap: 20px;
-  }
-  .invite-list li {
-    flex-direction: column;
-    gap: 4px;
   }
   .profile-edit,
   .invitations-panel {

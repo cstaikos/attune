@@ -91,35 +91,28 @@
       >
         Create invitation
       </button>
-      <ul class="invite-list">
-        @if(createdInvitation(); as created) {
-        <li>
-          <div>
-            <p>
-              Share this invite link with the person you’d like to invite. Save
-              it now; it won’t be shown again after you leave this page.
-            </p>
-            @if(created.code; as code) {
-            <p><a [href]="invitationLink(code)">{{invitationLink(code)}}</a></p>
-            <button matButton appButton="secondary" [disabled]="action.busy()" (click)="copyInvitation(code)">
-              Copy invite link
-            </button>
-            <p>Or share the code: <code>{{code}}</code></p>
-            }
-          </div>
-        </li>
-        }
-      </ul>
+      <p>Each code can be used once. The first person to redeem it joins.</p>
       <app-list-view
         [items]="data.invitations"
         label="Invitations"
         [searchable]="false"
+        [paginationThreshold]="25"
         [resetKey]="data.profile.id"
       >
         <ng-template let-invite>
-          <p>
-            Invitation {{invite.id.slice(0,8)}} · {{invitationStatus(invite)}}
-          </p>
+          <div class="invitation-row">
+            <p>{{invitationStatus(invite)}}</p>
+            @if(invite.code; as code) {
+              <code>{{code}}</code>
+              @if(invitationStatus(invite) === 'Available') {
+                <button matButton appButton="secondary" [disabled]="action.busy()" (click)="copyInvitation(code)">
+                  Copy invite link
+                </button>
+              }
+            } @else {
+              <p>This older invitation’s code is unavailable. Use the original link if you saved it.</p>
+            }
+          </div>
         </ng-template>
       </app-list-view>
     </section>

@@ -42,7 +42,10 @@ export class AuthPage {
   });
   constructor() {
     const invite = this.route.snapshot.queryParamMap.get("invite");
-    if (invite) rememberInvitation(invite);
+    if (invite) {
+      rememberInvitation(invite);
+      this.form.controls.inviteCode.disable();
+    }
     if (this.route.snapshot.queryParamMap.has("unavailable"))
       this.action.error.set(
         "Unable to check your account. Check your connection and try signing in again.",

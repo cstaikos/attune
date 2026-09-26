@@ -81,6 +81,7 @@ export interface ListFilter {
         </p>
       }
     </div>
+    @if (filtered().length >= paginationThreshold()) {
     <nav class="pagination" [class.comments-pagination]="layout() === 'comment-list'" [attr.aria-label]="label() + ' pagination'">
       <span role="status"
         >{{ window().start }}–{{ window().end }} of {{ filtered().length }}
@@ -123,6 +124,7 @@ export interface ListFilter {
         </button>
       </div>
     </nav>
+    }
   `,
   styles: [
     `
@@ -201,6 +203,7 @@ export class ListView<T> {
   readonly layout = input("");
   readonly emptyMessage = input("Nothing here yet.");
   readonly searchable = input(true);
+  readonly paginationThreshold = input(0);
   readonly filters = input<ListFilter[]>([]);
   readonly searchText = input<(item: T) => string>((item) =>
     JSON.stringify(item),

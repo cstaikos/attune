@@ -12,7 +12,6 @@
         label="Invitation code"
         [control]="form.controls.inviteCode"
         autocomplete="off"
-        hint="Already filled in if you opened an invite link."
       />
       }
       <app-text-field
@@ -51,10 +50,4 @@
     <a routerLink="/forgot-password">Forgot password?</a> ·
     <a routerLink="/verify-email">Resend verification email</a>
   </p>
-  @if(joining()) {
-  <p>
-    Verify your email, then finish your profile to join. We’ll remember your
-    invitation in this browser. Keep your invite link in case you need it again.
-  </p>
-  }
 </section>

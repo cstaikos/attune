@@ -1,4 +1,4 @@
-import { AppSlider } from "../../shared/ui/slider";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { UI_FIELDS } from "../../shared/ui/field";
 import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { Component, effect, HostListener, inject } from "@angular/core";
@@ -19,11 +19,11 @@ import { PageLoad } from "../../shared/state/page-load";
 import { ActionState } from "../../shared/state/action-state";
 import { PageStatus } from "../../shared/components/page-status";
 import { ActionFeedback } from "../../shared/components/action-feedback";
-import { EnergyChart } from "../../shared/components/energy-chart";
+import { EnergyCurveEditor } from "../../shared/components/energy-curve-editor";
 @Component({
   selector: "app-editor-page",
   imports: [
-    AppSlider,
+    MatTooltipModule,
     ...UI_BUTTONS,
     ...UI_FIELDS,
     ReactiveFormsModule,
@@ -31,9 +31,27 @@ import { EnergyChart } from "../../shared/components/energy-chart";
     TitleCasePipe,
     PageStatus,
     ActionFeedback,
-    EnergyChart,
+    EnergyCurveEditor,
   ],
   templateUrl: "./editor-page.html",
+  styles: `
+    .energy-help {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      margin-left: 4px;
+      padding: 3px;
+      vertical-align: middle;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      cursor: help;
+    }
+    .energy-help svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+    .energy-help:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  `,
 })
 export class EditorPage {
   private readonly fb = inject(FormBuilder).nonNullable;
@@ -50,7 +68,7 @@ export class EditorPage {
   readonly musicGroups = musicGroups;
   readonly form = this.fb.group({
     title: ["", Validators.required],
-    modality: this.fb.control<Modality>("Meditation"),
+    modality: this.fb.control<Modality | "">("", Validators.required),
     hours: [0, [Validators.required, Validators.min(0)]],
     minutes: [0, [Validators.required, Validators.min(0), Validators.max(59)]],
     notes: [""],
@@ -82,7 +100,7 @@ export class EditorPage {
       const total = p ? durationMinutes(p.duration) || 0 : 0;
       this.form.reset({
         title: p?.title || "",
-        modality: p?.modality || "Meditation",
+        modality: p?.modality || "",
         hours: Math.floor(total / 60),
         minutes: total % 60,
         notes: p?.notes || "",
@@ -137,16 +155,25 @@ export class EditorPage {
       this.form.markAsDirty();
     }
   }
-  addPoint() {
-    if (this.form.controls.energy.length < 24) {
-      const index = this.form.controls.energy.length - 1;
-      this.form.controls.energy.insert(index, this.fb.control(2));
+  addPoint({ index, value }: { index: number; value: number }) {
+    if (!this.action.busy() && this.form.controls.energy.length < 12) {
+      this.form.controls.energy.insert(index, this.fb.control(value));
       this.form.controls.energyLabels.insert(index, this.fb.control(""));
       this.form.markAsDirty();
     }
   }
+  setPoint({ index, value }: { index: number; value: number }) {
+    if (this.action.busy()) return;
+    this.form.controls.energy.at(index).setValue(value);
+    this.form.markAsDirty();
+  }
+  setPointLabel({ index, label }: { index: number; label: string }) {
+    if (this.action.busy()) return;
+    this.form.controls.energyLabels.at(index).setValue(label);
+    this.form.markAsDirty();
+  }
   removePoint(index: number) {
-    if (this.form.controls.energy.length > 2) {
+    if (!this.action.busy() && this.form.controls.energy.length > 2) {
       this.form.controls.energy.removeAt(index);
       this.form.controls.energyLabels.removeAt(index);
       this.form.markAsDirty();
@@ -162,6 +189,7 @@ export class EditorPage {
     }
     void this.action.run(async () => {
       const v = this.form.getRawValue();
+      if (!v.modality) throw new ServiceError("invalid-input", "Choose a modality.");
       if (!Number.isInteger(v.hours) || !Number.isInteger(v.minutes))
         throw new ServiceError(
           "invalid-input",

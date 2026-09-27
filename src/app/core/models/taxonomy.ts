@@ -3,8 +3,12 @@ export const modalities = [
   "Psilocybin",
   "Ketamine",
   "Cannabis",
+  "2C-B",
+  "3-MMC",
+  "5-MeO-DMT",
   "Breathwork",
   "Meditation",
+  "Other",
 ] as const;
 export const qualityGroups = {
   Sound: [

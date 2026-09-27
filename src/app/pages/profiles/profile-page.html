@@ -118,11 +118,8 @@
     </section>
     }
   </div>
-  @if(data.profile.id===member.session()?.userId){
-  <app-reports-page />
-  }
   <section class="profile-playlists">
-    <div class="page-heading"><h2>Playlists</h2></div>
+    <div class="page-heading"><h2>{{data.profile.id===member.session()?.userId ? 'My playlists' : 'Playlists'}}</h2></div>
     <app-list-view
       [items]="data.playlists"
       label="Profile playlists"

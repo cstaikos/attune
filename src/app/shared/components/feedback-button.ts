@@ -7,7 +7,7 @@ class FeedbackForm {
   readonly busy = signal(false);
   private removeForm?: () => void;
 
-  async open(problem: boolean): Promise<void> {
+  async open(problem: boolean, source: "header" | "footer"): Promise<void> {
     const feedback = Sentry.getFeedback();
     if (!feedback || this.busy()) return;
     this.busy.set(true);
@@ -23,7 +23,7 @@ class FeedbackForm {
     try {
       const form = await feedback.createForm({
         formTitle: problem ? "Report this problem" : "Send feedback",
-        tags: { feedback_source: problem ? "error" : "footer" },
+        tags: { feedback_source: problem ? "error" : source },
         onSubmitSuccess: restoreFocus,
         onFormClose: () => {
           form.removeFromDom();
@@ -48,7 +48,7 @@ class FeedbackForm {
       <button
         type="button"
         matButton
-        appButton="text"
+        [appButton]="variant()"
         size="small"
         [disabled]="form.busy()"
         (click)="open()"
@@ -64,6 +64,8 @@ class FeedbackForm {
   `,
 })
 export class FeedbackButton {
+  readonly source = input<"header" | "footer">("footer");
+  readonly variant = input<"text" | "secondary">("text");
   readonly problem = input(false);
   readonly available = !!Sentry.getFeedback();
   readonly form = inject(FeedbackForm);
@@ -72,7 +74,7 @@ export class FeedbackButton {
   async open(): Promise<void> {
     this.failed.set(false);
     try {
-      await this.form.open(this.problem());
+      await this.form.open(this.problem(), this.source());
     } catch {
       this.failed.set(true);
     }

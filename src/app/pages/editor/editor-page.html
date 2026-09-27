@@ -80,10 +80,6 @@
           [attr.aria-invalid]="form.controls.links.hasError('required') && (submitted() || form.controls.links.touched)"
           aria-describedby="links-error">
           <legend>Playlist links</legend>
-          <p class="field-hint">
-            Add any URL. Spotify, Apple Music, and YouTube links are recognized
-            automatically.
-          </p>
           @for(control of form.controls.links.controls;track control;let
           i=$index){
           <div class="link-editor">

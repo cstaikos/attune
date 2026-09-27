@@ -1,4 +1,4 @@
-<div class="app-shell">
+<div class="app-shell" [attr.inert]="navigating() ? '' : null" [attr.aria-busy]="navigating()">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="topbar">
     <a
@@ -33,7 +33,7 @@
         routerLink="/contributions"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
-        >My contributions</a
+        >My playlists</a
       ><a
         routerLink="/profiles"
         routerLinkActive="active"
@@ -46,8 +46,11 @@
     </nav>
     }
     <div class="account-bar">
+      <app-feedback-button source="header" variant="secondary" />
       @if(member.session();as session){<a
         class="mini-profile"
+        aria-label="My profile"
+        title="My profile"
         [routerLink]="['/profile',session.userId]"
         ><div class="avatar">{{member.profile.data()?.initials || 'Me'}}</div>
         <div>
@@ -72,18 +75,27 @@
     <app-action-feedback [error]="action.error()" />
   </div>
   <main class="view-root" id="main-content" tabindex="-1">
-    @if(navigating()) {
-    <section class="auth-page" role="status" aria-live="polite">
-      <mat-spinner diameter="32" aria-hidden="true" />
-      <h2>Connecting…</h2>
-      <p>We're opening your page. This should only take a moment.</p>
-    </section>
-    }
-    <div [hidden]="navigating()">
-      <router-outlet />
-    </div>
+    <router-outlet />
   </main>
-  <footer class="site-footer"><app-feedback-button /></footer>
+  <footer class="site-footer">
+    <div class="footer-about">
+      <a routerLink="/library">Attune Commons</a>
+      <p>Playlists for psychedelic therapists</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      @if(member.session();as session){
+      <a routerLink="/library">Library</a>
+      <a [routerLink]="['/profile',session.userId]">My profile</a>
+      }
+      <app-feedback-button />
+    </nav>
+  </footer>
 </div>
+
+@if(navigating()) {
+<div class="navigation-overlay" role="status" aria-label="Loading page">
+  <mat-spinner diameter="40" aria-hidden="true" />
+</div>
+}
 
 <app-leave-dialog />

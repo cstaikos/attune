@@ -83,11 +83,11 @@ export const routes: Routes = [
       },
       {
         path: "contributions",
-        title: "My contributions · Attune Commons",
+        title: "My playlists · Attune Commons",
         loadComponent: library,
         data: {
           view: "contributions",
-          heading: "My contributions",
+          heading: "My playlists",
           description: "Playlists you have added to the library.",
         },
       },

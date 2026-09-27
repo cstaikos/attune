@@ -2,7 +2,6 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { UI_FIELDS } from "../../shared/ui/field";
 import { UI_BUTTONS } from "../../shared/ui/native-button";
 import { ListView } from "../../shared/components/list-view";
-import { ReportsPage } from "../admin/reports-page";
 import { PrivateReportComponent } from "../../shared/components/private-report";
 import { Component, effect, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -29,7 +28,6 @@ import { PlaylistCard } from "../../shared/components/playlist-card";
     ...UI_FIELDS,
     ListView,
     PrivateReportComponent,
-    ReportsPage,
     ReactiveFormsModule,
     PageStatus,
     ActionFeedback,

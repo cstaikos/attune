@@ -13,6 +13,15 @@ app-root .view-root {
   width: 100%;
   min-height: 0;
 }
+app-root .navigation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  cursor: progress;
+}
 app-root .topbar {
   grid-template-columns: minmax(max-content, calc((100vw - 1200px) / 2 - 48px)) minmax(0, 1fr) auto;
 }
@@ -196,11 +205,6 @@ button:disabled {
 .card-body h3,
 .detail-hero h2 {
   overflow-wrap: anywhere;
-}
-@media (max-width: 1100px) {
-  app-root .topbar {
-    grid-template-columns: 1fr auto;
-  }
 }
 @media (max-width: 720px) {
   .track-editor {
@@ -725,10 +729,43 @@ app-playlist-card .meta-line {
 .auth-page h2 {
   margin: 12px 0 16px;
 }
-.site-footer:empty {
-  padding: 0;
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 24px max(28px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  text-align: left;
 }
-@media (max-width: 1040px) {
+.footer-about > a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.footer-about p {
+  margin: 8px 0 0;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.account-bar app-feedback-button:empty {
+  display: none;
+}
+.mini-profile > div:last-child {
+  min-width: 0;
+  max-width: 160px;
+}
+.mini-profile:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 1280px) {
   app-root .topbar {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -740,6 +777,8 @@ app-playlist-card .meta-line {
     grid-column: 1 / -1;
     grid-row: 2;
   }
+}
+@media (max-width: 1040px) {
   .playlist-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -752,8 +791,19 @@ app-playlist-card .meta-line {
 }
 @media (max-width: 720px) {
   app-root .topbar {
+    grid-template-columns: minmax(0, 1fr);
     padding: 14px 20px;
     gap: 14px;
+  }
+  app-root .topbar:not(:has(.library-nav)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  app-root .topbar .account-bar {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .mini-profile > div:last-child {
     display: none;
@@ -762,6 +812,7 @@ app-playlist-card .meta-line {
     justify-content: flex-end;
   }
   app-root .library-nav {
+    grid-row: 3;
     padding: 0;
     gap: 4px 20px;
     flex-wrap: wrap;

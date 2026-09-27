@@ -60,7 +60,8 @@
           appField="Modality"
           #field4="appField"
           ><mat-label>Modality</mat-label
-          ><select matNativeControl formControlName="modality">
+          ><select matNativeControl formControlName="modality" required>
+            <option value="" disabled>Choose one</option>
             @for(m of modalities;track m){
             <option [value]="m">{{m}}</option>
             }</select
@@ -108,45 +109,26 @@
           </button>
         </fieldset>
         <fieldset class="field-group energy-field full-span">
-          <legend>Energy curve</legend>
-          <p class="field-hint">
-            Shape the energy from start to finish. Points are spaced evenly
-            through the playlist.
-          </p>
-          <app-energy-chart [values]="form.controls.energy.getRawValue()" [labels]="form.controls.energyLabels.getRawValue()" />
-          <div class="arc-builder" formArrayName="energy">
-            @for(control of form.controls.energy.controls;track control;let
-            i=$index){
-            <div class="arc-control">
-              <mat-form-field class="arc-label" appField="Point label">
-                <mat-label>Point {{i+1}} label (optional)</mat-label>
-                <input matInput [formControl]="form.controls.energyLabels.controls[i]" />
-              </mat-form-field>
-              <app-slider
-                [control]="control"
-                label="Point {{i+1}}"
-                [disabled]="action.busy()"
-              /><button
-                matButton
-                appButton="text"
-                type="button"
-                [disabled]="form.controls.energy.length<=2"
-                (click)="removePoint(i)"
-              >
-                Remove point {{i+1}}
-              </button>
-            </div>
-            }
-          </div>
-          <button
-            matButton
-            appButton="secondary"
-            type="button"
-            [disabled]="form.controls.energy.length>=24"
-            (click)="addPoint()"
-          >
-            Add point
-          </button>
+          <legend>
+            Energy curve
+            <button type="button" class="energy-help" aria-label="Energy curve instructions"
+              matTooltip="Drag points up or down to shape the energy. Click between points to insert one (up to 12). Hover over a point to delete it or edit its label. Use arrow keys on a focused point to adjust its energy."
+              #energyHelp="matTooltip" (click)="energyHelp.show()">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v6M12 7v1" />
+              </svg>
+            </button>
+          </legend>
+          <app-energy-curve-editor
+            [values]="form.controls.energy.getRawValue()"
+            [labels]="form.controls.energyLabels.getRawValue()"
+            [disabled]="action.busy()"
+            (valueChange)="setPoint($event)"
+            (insertPoint)="addPoint($event)"
+            (removePoint)="removePoint($event)"
+            (labelChange)="setPointLabel($event)"
+          />
         </fieldset>
         <mat-form-field class="full-span" appField="Notes" #field6="appField"
           ><mat-label>Notes</mat-label>

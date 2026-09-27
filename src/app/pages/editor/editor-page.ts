@@ -1,7 +1,8 @@
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { UI_FIELDS } from "../../shared/ui/field";
 import { UI_BUTTONS } from "../../shared/ui/native-button";
-import { Component, effect, HostListener, inject } from "@angular/core";
+import { Component, ElementRef, effect, HostListener, inject, signal } from "@angular/core";
+import { nonBlank, wholeNumber, playlistUrl, requiredLink, positiveDuration } from "../../core/utils/playlist-validators";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -51,9 +52,12 @@ import { EnergyCurveEditor } from "../../shared/components/energy-curve-editor";
     }
     .energy-help svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
     .energy-help:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+    .validation-invalid { outline: 2px solid var(--mat-sys-error, #b3261e); outline-offset: 4px; border-radius: 8px; }
   `,
 })
 export class EditorPage {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly submitted = signal(false);
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly playlists = inject(PLAYLIST_SERVICE);
   private readonly member = inject(MemberSession);
@@ -67,16 +71,16 @@ export class EditorPage {
   readonly modalities = modalities;
   readonly musicGroups = musicGroups;
   readonly form = this.fb.group({
-    title: ["", Validators.required],
+    title: ["", [nonBlank, Validators.maxLength(200)]],
     modality: this.fb.control<Modality | "">("", Validators.required),
-    hours: [0, [Validators.required, Validators.min(0)]],
-    minutes: [0, [Validators.required, Validators.min(0), Validators.max(59)]],
+    hours: [0, [Validators.required, Validators.min(0), wholeNumber]],
+    minutes: [0, [Validators.required, Validators.min(0), Validators.max(59), wholeNumber]],
     notes: [""],
-    qualities: this.fb.control<MusicTag[]>([]),
-    links: this.fb.array([this.fb.control("")]),
+    qualities: this.fb.control<MusicTag[]>([], Validators.required),
+    links: this.fb.array([this.fb.control("", playlistUrl)], requiredLink),
     energyLabels: this.fb.array(["start", "", "", "", "", "finish"].map((label) => this.fb.control(label))),
     energy: this.fb.array([1, 2, 3, 4, 3, 2].map((n) => this.fb.control(n))),
-  });
+  }, { validators: positiveDuration });
   constructor() {
     effect(() => {
       void this.load(this.params().get("id"));
@@ -97,6 +101,8 @@ export class EditorPage {
           "You can only edit your own contributions.",
         );
       if (id !== this.id) return p;
+      this.submitted.set(false);
+      this.action.error.set("");
       const total = p ? durationMinutes(p.duration) || 0 : 0;
       this.form.reset({
         title: p?.title || "",
@@ -110,7 +116,7 @@ export class EditorPage {
       for (const url of Object.values(p?.links || {}).length
         ? Object.values(p!.links)
         : [""])
-        this.form.controls.links.push(this.fb.control(url));
+        this.form.controls.links.push(this.fb.control(url, playlistUrl));
       this.form.controls.energy.clear();
       for (const n of p?.energyCurve || [1, 2, 3, 4, 3, 2])
         this.form.controls.energy.push(this.fb.control(n));
@@ -141,12 +147,13 @@ export class EditorPage {
       );
     control.setValue(tags);
     control.markAsDirty();
+    control.markAsTouched();
   }
   linkLabel(url: string) {
     return parsePlaylistLink(url)?.label || "";
   }
   addLink() {
-    this.form.controls.links.push(this.fb.control(""));
+    this.form.controls.links.push(this.fb.control("", playlistUrl));
     this.form.markAsDirty();
   }
   removeLink(index: number) {
@@ -180,11 +187,14 @@ export class EditorPage {
     }
   }
   submit() {
+    if (this.action.busy()) return;
+    this.submitted.set(true);
     this.form.markAllAsTouched();
     if (this.form.invalid) {
-      this.action.error.set(
-        "Complete the required fields and check the duration.",
-      );
+      this.action.error.set("");
+      setTimeout(() => this.element.nativeElement.querySelector<HTMLElement>(
+        'input.ng-invalid, select.ng-invalid, .validation-invalid input, .validation-invalid button',
+      )?.focus());
       return;
     }
     void this.action.run(async () => {

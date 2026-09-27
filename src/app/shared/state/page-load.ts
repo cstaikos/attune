@@ -1,9 +1,6 @@
 import { signal } from "@angular/core";
-export function errorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : "Something went wrong. Please try again.";
-}
+import { userErrorMessage as errorMessage } from "../../core/utils/user-error";
+export { userErrorMessage as errorMessage } from "../../core/utils/user-error";
 /** Only the most recent request can update a routed screen. */
 export class PageLoad<T> {
   readonly data = signal<T | null>(null);

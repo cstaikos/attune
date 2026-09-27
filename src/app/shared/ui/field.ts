@@ -22,6 +22,8 @@ export class AppField {
     const errors = this.field()?.ngControl?.errors;
     if (errors?.["required"]) return `${this.label()} is required.`;
     if (errors?.["email"]) return "Enter a valid email address.";
+    if (errors?.["wholeNumber"]) return "Enter a whole number.";
+    if (errors?.["playlistUrl"]) return "Enter a valid playlist URL, including https://.";
     if (errors?.["minlength"])
       return `Use at least ${errors["minlength"].requiredLength} characters.`;
     if (errors?.["maxlength"])

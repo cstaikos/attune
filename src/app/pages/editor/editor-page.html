@@ -24,7 +24,10 @@
             >{{field1.validationMessage()}}</mat-error
           ></mat-form-field
         >
-        <fieldset class="duration-field">
+        <fieldset class="duration-field"
+          [class.validation-invalid]="form.hasError('duration') && (submitted() || form.controls.hours.touched || form.controls.minutes.touched)"
+          [attr.aria-invalid]="form.hasError('duration') && (submitted() || form.controls.hours.touched || form.controls.minutes.touched)"
+          aria-describedby="duration-error">
           <legend>Duration</legend>
           <div class="duration-inputs">
             <mat-form-field appField="Hours" #field2="appField"
@@ -54,6 +57,11 @@
               ></mat-form-field
             >
           </div>
+          <div id="duration-error">
+            @if(form.hasError('duration') && (submitted() || form.controls.hours.touched || form.controls.minutes.touched)){
+              <p class="form-error">Enter a duration greater than zero using whole hours and minutes.</p>
+            }
+          </div>
         </fieldset>
         <mat-form-field
           class="modality-field"
@@ -67,7 +75,10 @@
             }</select
           ><mat-error>{{field4.validationMessage()}}</mat-error></mat-form-field
         >
-        <fieldset class="field-group full-span" formArrayName="links">
+        <fieldset class="field-group full-span" formArrayName="links"
+          [class.validation-invalid]="form.controls.links.hasError('required') && (submitted() || form.controls.links.touched)"
+          [attr.aria-invalid]="form.controls.links.hasError('required') && (submitted() || form.controls.links.touched)"
+          aria-describedby="links-error">
           <legend>Playlist links</legend>
           <p class="field-hint">
             Add any URL. Spotify, Apple Music, and YouTube links are recognized
@@ -82,6 +93,7 @@
                 matInput
                 type="url"
                 [formControlName]="i"
+                aria-describedby="links-error"
                 placeholder="https://…"
               /><mat-error
                 >{{field5.validationMessage()}}</mat-error
@@ -99,6 +111,11 @@
             </button>
           </div>
           }
+          <div id="links-error">
+            @if(form.controls.links.hasError('required') && (submitted() || form.controls.links.touched)){
+              <p class="form-error">Add at least one playlist link.</p>
+            }
+          </div>
           <button
             matButton
             appButton="secondary"
@@ -141,11 +158,19 @@
           <mat-error>{{field6.validationMessage()}}</mat-error></mat-form-field
         >
       </div>
-      <fieldset class="field-group">
+      <fieldset class="field-group"
+        [class.validation-invalid]="form.controls.qualities.invalid && (submitted() || form.controls.qualities.touched)"
+        [attr.aria-invalid]="form.controls.qualities.invalid && (submitted() || form.controls.qualities.touched)"
+        aria-describedby="tags-error">
         <legend>Music tags</legend>
         <p class="field-hint">
           Choose at least one. Include every voice type present.
         </p>
+        <div id="tags-error">
+          @if(form.controls.qualities.invalid && (submitted() || form.controls.qualities.touched)){
+            <p class="form-error">Choose at least one music tag.</p>
+          }
+        </div>
         @for(group of musicGroups;track group.name){
         <fieldset class="choice-group">
           <legend>{{group.name}}</legend>
@@ -172,6 +197,9 @@
         </button>
       </div>
     </fieldset>
+    @if(submitted() && form.invalid){
+      <p class="form-error" role="alert">Complete the highlighted fields before saving.</p>
+    }
     <app-action-feedback [error]="action.error()" />
   </form>
   }

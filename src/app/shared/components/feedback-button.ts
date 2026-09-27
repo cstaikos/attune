@@ -46,6 +46,7 @@ class FeedbackForm {
   template: `
     @if (available) {
       <button
+        type="button"
         matButton
         appButton="text"
         size="small"
